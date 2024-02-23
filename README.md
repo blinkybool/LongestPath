@@ -8,7 +8,7 @@ WSL is recommended for running on Windows.
 # Create virtualenv
 python3 -m venv venv
 # Activate it (repeat this step on shell restart)
-source /usr/bin/activate
+source ./venv/bin/activate
 # Upgrade pip
 pip install -U pip
 # Install dependencies (e.g. for matplotlib and numpy)
