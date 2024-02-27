@@ -118,5 +118,64 @@ def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
 	
 	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
 
+
+"""
+This class is intended to serve as an interface. Subclasses are supposed to represent graphs for which we can compute, what I call the least expansion distance of each vertex.
+This can then be used to expand the graph by wedging 'bubbles' to each vertex in such a way as to avoid lengthening the longest path.
+
+For a path p, the backward expansion distance is the length (in edge distance) of the longest path q such that qp is again a path.
+Similarly the forward expansion distance is the length of the longest path q such that pq is a path.
+
+The backward least expansion distance for a vertex v is then the minimum of the backward expansion distances of paths starting in v, and similarly so for the forward least expansion distance.
+"""
+class ExpandableGraph:
+	graph: StandardGraph
+
+	# WARNING: This should be given in edge distance
+	def backward_least_expansion_distance(self, v: int):
+		pass
+
+	# WARNING: This should be given in edge distance
+	def forward_least_expansion_distance(self, v: int):
+		pass
+
+	# WARNING: This should be given in edge distance
+	def least_expansion_distance(self, v: int):
+		return min(
+			self.forward_least_expansion_distance(v), 
+			self.backward_least_expansion_distance(v)
+		)
+
+	"""
+	Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
+	"""
+	def expand(self, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+		result = self.graph.clone()
+
+		for v in range(self.graph.vertices):
+			max_bubble_path_edge_length = self.least_expansion_distance(v)
+			max_bubble_size = max_bubble_path_edge_length + 1
+			G = gen_erdos_reyni_(node_count(max_bubble_size), p = p)
+			result.wedge(G, v, 0)
+
+		return result
+
+@dataclass
+class LinearGraph(ExpandableGraph):
+	graph: StandardGraph
+	def __init__(self, vertices: int):
+		self.graph = linear_graph(vertices)
+	
+	def backward_least_expansion_distance(self, v: int):
+		return v
+
+	def forward_least_expansion_distance(self, v: int):
+		return self.graph.vertices - 1 - v
+
+	def __repr__(self):
+		return f"{LinearGraph.__name__}({self.graph.vertices})"
+
 if __name__ == "__main__":
-    print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
+    # print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
+    print(LinearGraph(5).expand(1).undirected_str())
+

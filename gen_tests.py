@@ -72,6 +72,21 @@ class TestGen(unittest.TestCase):
             )
         )
 
+    def test_expand_prob0(self):
+        result = LinearGraph(5).expand(p = 0)
+        self.assertEqualGraphs(
+            result, StandardGraph(9, linear_graph(5).edges)
+        )
+
+    def test_expand_prob1(self):
+        result = LinearGraph(5).expand(p = 1)
+        self.assertEqualGraphs(
+            StandardGraph.from_undirected(result.vertices, result.edges),
+            StandardGraph.from_undirected(9, 
+                [(0,1), (1,2), (2,3), (3,4), (1,5), (2,6), (2,7), (6,7), (3,8)]
+            )
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
