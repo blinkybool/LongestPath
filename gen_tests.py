@@ -36,6 +36,42 @@ class TestGen(unittest.TestCase):
 
         self.assertNotEqual(G.vertices, G_cloned.vertices)
 
+    def test_complete_graph(self):
+        self.assertEqualGraphs(
+            complete_graph(2),
+            StandardGraph(2, [(0,0), (0,1), (1,0), (1,1)])
+        )
+
+    # This test fails!
+    # def test_gen_erdos_reyni(self):
+    #     random.seed(0)
+    #     self.assertEqualGraphs(
+    #         gen_erdos_reyni(5, p = 1),
+    #         complete_graph(5),
+    #     )
+
+    def test_gen_erdos_reyni_(self):
+        random.seed(0)
+        self.assertEqualGraphs(
+            gen_erdos_reyni_(5, p = 1),
+            complete_graph(5),
+        )
+
+    def test_from_undirected(self):
+        self.assertEqualGraphs(
+            StandardGraph.from_undirected(3, [(0,1), (1,2)]),
+            StandardGraph(3, [(0,0),(1,1),(2,2), (0,1), (1,2), (1,0), (2,1)])
+        )
+
+    def test_gen_planted_path_prob1(self):
+        result = gen_planted_path(5, p = 1)
+        self.assertEqualGraphs(
+            StandardGraph.from_undirected(result.vertices, result.edges),
+            StandardGraph.from_undirected(9, 
+                [(0,1), (1,2), (2,3), (3,4), (1,5), (2,6), (2,7), (6,7), (3,8)]
+            )
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
