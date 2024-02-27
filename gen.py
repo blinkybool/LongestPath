@@ -105,8 +105,18 @@ def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int
 	
 	return result
 
+
+def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
+	line = linear_graph(vertices).edges
+	line_set = set(line)
+	all_edges = [
+		(s, t) 
+			for s in range(vertices) 
+			for t in range(vertices) 
+			if (s,t) not in line_set
+	]
+	
+	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
+
 if __name__ == "__main__":
-	# print(gen_average_degree(10, average_degree=2))
-    print(gen_planted_path(5, 1).undirected_str())
-	# random.seed(0)
-	# print(gen_erdos_reyni_(5, p = 1))
+    print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
