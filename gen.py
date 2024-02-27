@@ -21,9 +21,17 @@ class StandardGraph:
 		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in self.edges)
 
 	def clone(self):
+		"""
+		Makes a deep copy of the graph
+		"""
 		return StandardGraph(self.vertices, self.edges[:])
 
 	def wedge(self, other, self_vert, other_vert):
+		"""
+		Warning: This mutates the graph.
+
+		Extends self by merging it with other while making sure that exactly the vertices self_vert and other_vert become identified.
+		"""
 		n = self.vertices
 		self.vertices += other.vertices - 1
 
@@ -38,11 +46,18 @@ class StandardGraph:
 		self.edges += [(other_map(s), other_map(t)) for (s, t) in other.edges]
 
 	def undirected_str(self) -> str:
+		"""
+		Returns a string representing the graph, leaving out direction and selfloops.
+		"""
 		edges = set(frozenset(e) for e in self.edges if e[0] != e[1])
 
 		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in edges)
 
 	def from_undirected(vertices, edges):
+		"""
+		Freely turns an undirected representation of a graph into a directed graph.
+		In other words, it adds all selfloops and oposites of edges from edges.
+		"""
 		return StandardGraph(vertices, 
 				list(set([(v, v) for v in range(vertices)]
 				+ edges
@@ -76,6 +91,7 @@ def random_subset(set: list, p: float) -> list:
 	choices = np.random.choice(range(len(set)), n, replace = False)
 	return [set[i] for i in choices]
 
+# This is a more direct implementation of Erdos Renyi.
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
 def gen_erdos_reyni_(num_vertices: int, p:float = None) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
@@ -96,6 +112,13 @@ def linear_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(vertices, edges)
 
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+	"""
+	Generates a random graph such that its longest path length is exactly `path_length`.
+
+	Args:
+		p: The probability used in Erdos-Reyni to generate bubbles.
+		node_count: Should return the size of a bubble given the upper bound. This can be any non-order-increasing procedure.
+	"""
 	result = linear_graph(path_length)
 
 	for v in range(path_length):
@@ -118,17 +141,16 @@ def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
 	
 	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
 
-
-"""
-This class is intended to serve as an interface. Subclasses are supposed to represent graphs for which we can compute, what I call the least expansion distance of each vertex.
-This can then be used to expand the graph by wedging 'bubbles' to each vertex in such a way as to avoid lengthening the longest path.
-
-For a path p, the backward expansion distance is the length (in edge distance) of the longest path q such that qp is again a path.
-Similarly the forward expansion distance is the length of the longest path q such that pq is a path.
-
-The backward least expansion distance for a vertex v is then the minimum of the backward expansion distances of paths starting in v, and similarly so for the forward least expansion distance.
-"""
 class ExpandableGraph:
+	"""
+	This class is intended to serve as an interface. Subclasses are supposed to represent graphs for which we can compute, what I call the least expansion distance of each vertex.
+	This can then be used to expand the graph by wedging 'bubbles' to each vertex in such a way as to avoid lengthening the longest path.
+
+	For a path p, the backward expansion distance is the length (in edge distance) of the longest path q such that qp is again a path.
+	Similarly the forward expansion distance is the length of the longest path q such that pq is a path.
+
+	The backward least expansion distance for a vertex v is then the minimum of the backward expansion distances of paths starting in v, and similarly so for the forward least expansion distance.
+	"""
 	graph: StandardGraph
 
 	# WARNING: This should be given in edge distance
@@ -146,10 +168,14 @@ class ExpandableGraph:
 			self.backward_least_expansion_distance(v)
 		)
 
-	"""
-	Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
-	"""
 	def expand(self, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+		"""
+		Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
+
+		Args:
+			p: The probability used in Erdos-Reyni to generate bubbles.
+			node_count: Should return the size of a bubble given the upper bound. This can be any non-order-increasing procedure.
+		"""
 		result = self.graph.clone()
 
 		for v in range(self.graph.vertices):
