@@ -9,17 +9,17 @@ class TestGen(unittest.TestCase):
 
     def test_linear_graph(self):
         self.assertEqualGraphs(
-            StandardGraph.mk_linear(5),
+            linear_graph(5),
             StandardGraph(5, [(0,1),(1,2),(2,3),(3,4)])
         )
 
     def test_wedge(self):
-        G1 = StandardGraph.mk_linear(3)
-        G2 = StandardGraph.mk_linear(4)
+        G1 = linear_graph(3)
+        G2 = linear_graph(4)
 
         G1.wedge(G2, 2, 0)
 
-        expected = StandardGraph.mk_linear(6)
+        expected = linear_graph(6)
 
         self.assertEqualGraphs(G1, expected)
 

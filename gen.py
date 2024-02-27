@@ -37,9 +37,6 @@ class StandardGraph:
 
 		self.edges += [(other_map(s), other_map(t)) for (s, t) in other.edges]
 
-	def mk_linear(vertices: int):
-		edges = list(zip(range(vertices),range(1,vertices)))
-		return StandardGraph(vertices, edges)
 
 		
 
@@ -65,6 +62,9 @@ def gen_erdos_reyni(num_vertices: int, num_edges:int = None, p:float = None) -> 
 def gen_average_degree(num_vertices: int, average_degree: int) -> StandardGraph:
 	return gen_erdos_reyni(num_vertices=num_vertices, num_edges=round(num_vertices * average_degree / 2))
 
+def linear_graph(vertices: int):
+	edges = list(zip(range(vertices),range(1,vertices)))
+	return StandardGraph(vertices, edges)
 
     
 
