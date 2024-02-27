@@ -65,6 +65,7 @@ class StandardGraph:
 			)
 
 
+
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
 def gen_erdos_reyni(num_vertices: int, num_edges:int = None, p:float = None) -> StandardGraph:
 	if num_edges is None:
@@ -200,6 +201,22 @@ class LinearGraph(ExpandableGraph):
 
 	def __repr__(self):
 		return f"{LinearGraph.__name__}({self.graph.vertices})"
+
+@dataclass 
+class DAG(ExpandableGraph):
+	"""
+	These are directed acyclic graphs.
+	
+	For any paths p and q such that end(p) = start(q) we know that pq is a path.
+	Therefore computing the least expansion distances is easy in these cases.
+	"""
+	graph: StandardGraph
+
+	def backward_least_expansion_distance(self, v: int):
+		pass
+
+	def forward_least_expansion_distance(self, v: int):
+		pass
 
 if __name__ == "__main__":
     # print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
