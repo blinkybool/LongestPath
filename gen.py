@@ -37,6 +37,10 @@ class StandardGraph:
 
 		self.edges += [(other_map(s), other_map(t)) for (s, t) in other.edges]
 
+	def mk_linear(vertices: int):
+		edges = list(zip(range(vertices),range(1,vertices)))
+		return StandardGraph(vertices, edges)
+
 		
 
 
@@ -61,42 +65,6 @@ def gen_erdos_reyni(num_vertices: int, num_edges:int = None, p:float = None) -> 
 def gen_average_degree(num_vertices: int, average_degree: int) -> StandardGraph:
 	return gen_erdos_reyni(num_vertices=num_vertices, num_edges=round(num_vertices * average_degree / 2))
 
-"""
-This class is intended to serve as an interface.
-It represents a graph for which we know:
-1. For each vertex: the length of the longest path for which this vertex is an endpoint.
-2. The longest path length of the entire graph (this can be derived in polynomial time from 1).
-"""
-@dataclass
-class GraphWithLongestPaths:
-	graph: StandardGraph
-
-	def longest_path_length_from(self, vert: int) -> int:
-		pass
-
-	def longest_path_length(self) -> int:
-		return max(*[self.longest_path_length_from(v) for v in range(self.graph.vertices)])
-
-	def extend(self, p):
-		# result = 
-
-		# for v in range(self.graph.vertices):
-		pass
-
-
-
-class LinearGraph(GraphWithLongestPaths): 
-	def __init__(self, vertices: int):
-		self.graph = StandardGraph(
-			vertices, 
-			list(zip(range(vertices), range(1, vertices)))
-		)
-
-	def longest_path_length_from(self, vert: int) -> int:
-		return max(vert + 1, self.graph.vertices - vert)
-
-	def longest_path_length(self) -> int:
-		return self.graph.vertices
 
     
 
