@@ -44,9 +44,9 @@ class StandardGraph:
 
 	def from_undirected(vertices, edges):
 		return StandardGraph(vertices, 
-				[(v, v) for v in range(vertices)]
+				list(set([(v, v) for v in range(vertices)]
 				+ edges
-				+ [(t, s) for (s, t) in edges]
+				+ [(t, s) for (s, t) in edges]))
 			)
 
 
