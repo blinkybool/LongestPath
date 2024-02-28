@@ -1,4 +1,5 @@
 #include "neighbours_graph.h"
+#include <stdio.h>
 
 NeighboursGraph *new_graph(int vertices) {
 	NeighboursGraph *graph = malloc(sizeof(NeighboursGraph) + sizeof(VertArray) * vertices);
@@ -79,7 +80,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 
 	// Lookup table for checking if 
 	bool *path_set = malloc(sizeof(bool) * v);
-	memset(path_set, 0, v);
+	memset(path_set, false, v);
 	
 	int len = 1;
 	int vertex = 0;
@@ -160,4 +161,26 @@ bool verify_path(VertArray *path, NeighboursGraph *graph) {
 	}
 
 	return true;
+}
+
+NeighboursGraph *read_undirected_graph() {
+	int vertices;
+	if (scanf("%d\n", &vertices) != 1){
+		fprintf(stderr, "No graph provided.\n");
+		exit(1);
+	}
+
+	NeighboursGraph *graph = new_graph(vertices);
+	
+	int source, target;
+	int edges = 0;
+	while (scanf("%d %d\n", &source, &target) == 2) {
+		edges++;
+		add_edge(graph, source, target);
+		add_edge(graph, target, source);
+	}
+
+	printf("Read graph. vertices: %d, edges: %d\n", vertices, edges);
+
+	return graph;
 }

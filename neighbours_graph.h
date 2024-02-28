@@ -43,3 +43,5 @@ void print_undirected_graph(NeighboursGraph *graph);
 void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian);
 
 bool verify_path(VertArray *path, NeighboursGraph *graph);
+
+NeighboursGraph *read_undirected_graph();

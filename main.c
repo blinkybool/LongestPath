@@ -2,20 +2,15 @@
 #include "neighbours_graph.h"
 
 int main(int argc, char **argv) {
-	if (argc != 2) {
-		printf("Expected 1 argument (num vertices)");
-	}
-
-	int vertices = atoi(argv[1]);
-
-	NeighboursGraph *graph = new_graph(vertices);
-	init_random_undirected_graph(graph, 3.0 / vertices, time(NULL));
-	print_undirected_graph(graph);
+	NeighboursGraph *graph = read_undirected_graph();
 
 	VertArray *best_path = malloc(sizeof(VertArray));
 	best_path->elems = malloc(sizeof(int) * graph->vertices);
 
+	clock_t tick = clock();
 	longest_path_brute_force(best_path, graph, true);
+	clock_t tock = clock();
+	double elapsed = (double) (tock - tick) / CLOCKS_PER_SEC;
 
 	printf("Longest path length: %d\n", best_path->count-1);
 
@@ -24,6 +19,8 @@ int main(int argc, char **argv) {
 		printf("%d ", vertex);
 	});
 	printf("\n");
+
+	printf("Time: %fs\n", elapsed);
 
 	if (!verify_path(best_path, graph))
 		printf("FAIL: Path is invalid.\n");
