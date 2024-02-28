@@ -2,3 +2,4 @@
 lpath
 
 venv/
+__pycache__
