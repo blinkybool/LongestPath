@@ -5,6 +5,7 @@ int main(int argc, char **argv) {
 	NeighboursGraph *graph = read_undirected_graph();
 
 	VertArray *best_path = malloc(sizeof(VertArray));
+	best_path->count = 0;
 	best_path->elems = malloc(sizeof(int) * graph->vertices);
 
 	clock_t tick = clock();
