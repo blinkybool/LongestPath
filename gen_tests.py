@@ -26,7 +26,7 @@ class TestGen(unittest.TestCase):
     def test_clone(self):
         random.seed(0)
 
-        G = gen_erdos_reyni(10, p=0.2)
+        G = gen_erdos_reyni_directed(10, p=0.2)
         G_cloned = G.clone()
 
         self.assertEqualGraphs(G, G_cloned)
@@ -50,10 +50,10 @@ class TestGen(unittest.TestCase):
     #         complete_graph(5),
     #     )
 
-    def test_gen_erdos_reyni_(self):
+    def test_gen_erdos_reyni_directed(self):
         random.seed(0)
         self.assertEqualGraphs(
-            gen_erdos_reyni_(5, p = 1),
+            gen_erdos_reyni_directed(5, p = 1),
             complete_graph(5),
         )
 
@@ -85,6 +85,14 @@ class TestGen(unittest.TestCase):
             StandardGraph.from_undirected(9, 
                 [(0,1), (1,2), (2,3), (3,4), (1,5), (2,6), (2,7), (6,7), (3,8)]
             )
+        )
+
+    def test_invert_edges(self):
+        G = StandardGraph(3, [(0,1),(1,2)])
+        G.invert_edges()
+        self.assertEqualGraphs(
+            G,
+            StandardGraph(3, [(2,1),(1,0)]),
         )
 
 

@@ -64,6 +64,13 @@ class StandardGraph:
 				+ [(t, s) for (s, t) in edges]))
 			)
 
+	def invert_edges(self):
+		"""
+		WARNING: Mutates the graph.
+		This flips all adges.
+		"""
+		for i, (s, t) in enumerate(self.edges):
+			self.edges[i] = (t, s)
 
 
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
@@ -94,7 +101,7 @@ def random_subset(set: list, p: float) -> list:
 
 # This is a more direct implementation of Erdos Renyi.
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
-def gen_erdos_reyni_(num_vertices: int, p:float = None) -> StandardGraph:
+def gen_erdos_reyni_directed(num_vertices: int, p:float = None) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
@@ -124,7 +131,7 @@ def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int
 
 	for v in range(path_length):
 		max_nodes = min(v + 1, path_length - v)
-		G = gen_erdos_reyni_(node_count(max_nodes), p = p)
+		G = gen_erdos_reyni_directed(node_count(max_nodes), p = p)
 		result.wedge(G, v, 0)
 	
 	return result
@@ -152,7 +159,6 @@ class ExpandableGraph:
 
 	The backward least expansion distance for a vertex v is then the minimum of the backward expansion distances of paths starting in v, and similarly so for the forward least expansion distance.
 	"""
-	graph: StandardGraph
 
 	# WARNING: This should be given in edge distance
 	def backward_least_expansion_distance(self, v: int):
@@ -182,7 +188,7 @@ class ExpandableGraph:
 		for v in range(self.graph.vertices):
 			max_bubble_path_edge_length = self.least_expansion_distance(v)
 			max_bubble_size = max_bubble_path_edge_length + 1
-			G = gen_erdos_reyni_(node_count(max_bubble_size), p = p)
+			G = gen_erdos_reyni_directed(node_count(max_bubble_size), p = p)
 			result.wedge(G, v, 0)
 
 		return result
@@ -220,5 +226,6 @@ class DAG(ExpandableGraph):
 
 if __name__ == "__main__":
     # print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
-    print(LinearGraph(5).expand(1).undirected_str())
+    print(LinearGraph(15).expand(0.5))
+		# print(gen_erdos_reyni_directed(20, 0.1))
 
