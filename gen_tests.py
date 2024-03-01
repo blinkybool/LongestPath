@@ -95,6 +95,28 @@ class TestGen(unittest.TestCase):
             StandardGraph(3, [(2,1),(1,0)]),
         )
 
+    def test_topsort_cycle(self):
+        G = StandardGraph(4, [
+            (0, 1),
+            (1, 2), (2, 3), (3, 1)
+        ])
+        self.assertEqual(G.topological_sort(), None)
+
+    def test_topsort_DAG(self):
+        G = StandardGraph(5, [
+            (0, 1), (0, 2), (0, 3),
+            (1, 4), (2, 4), (3, 4)
+        ])
+        self.assertEqual(G.topological_sort(), [
+            {0}, {1, 2, 3}, {4}    
+        ])
+
+    def test_gen_DAG_topsort(self):
+        random.seed(0)
+        np.random.seed(0)
+        G = gen_DAG(20, 0.5)
+
+        self.assertNotEqual(G.topological_sort(), None)
 
 if __name__ == '__main__':
     unittest.main()

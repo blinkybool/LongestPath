@@ -2,6 +2,8 @@ import math, random
 from dataclasses import dataclass
 from typing import List, Tuple, Callable
 import numpy as np
+from topsort import TopSorter
+
 
 @dataclass
 class StandardGraph:
@@ -73,71 +75,18 @@ class StandardGraph:
 			self.edges[i] = (t, s)
 
 	def topological_sort(self):
-		in_nodes = {v : set() for v in range(self.vertices)}
-		out_nodes = {v : set() for v in range(self.vertices)}
-
-		for (s, t) in self.edges:
-			in_nodes[t].add(s)
-			out_nodes[s].add(t)
-
-		start_nodes = []
-
-		for (v, ins) in in_nodes.items():
-			if len(ins) == 0: 
-				start_nodes.append(v)
-
-		if len(start_nodes) == 0: return None
-
-		layers = [start_nodes]
-
-
-
-		return start_nodes
-
-@dataclass
-class TopSorter:
-	def __init__(self, graph):
-		self.in_nodes = {v : set() for v in range(graph.vertices)}
-		self.out_nodes = {v : [] for v in range(graph.vertices)}
-
-		for (s, t) in graph.edges:
-			self.in_nodes[t].add(s)
-			self.out_nodes[s].append(t)
-
-		self.layers = [self.inital_nodes(list(range(graph.vertices)))]
-
-	def inital_nodes(self, nodes):
-		return [
-				v 
-				for v in nodes
-				if len(self.in_nodes[v]) == 0
-			]
-
-	def __repr__(self):
-		return f"{self.layers}"
-
-	def remove_initial_nodes(self):
-		nodes_to_consider = []
-
-		for s in self.layers[-1]:
-			for t in self.out_nodes[s]:
-				self.in_nodes[t].remove(s)
-				nodes_to_consider.append(t)
-
-		return nodes_to_consider
-
-	def step(self):
-		nodes_to_consider = self.remove_initial_nodes()
-		layer = self.inital_nodes(nodes_to_consider)
-		return layer
-
-	def run(self):
-		while True:
-			layer = self.step()
-			if len(layer) != 0:
-				self.layers.append(layer)
-			else:
-				break
+		"""
+		Attempts to topologically sort a graph.
+		Returns a topological sorting if the graph is acyclic.
+		Returns None if the graph contains a cycle.
+		"""
+		layers = TopSorter(self).run()
+		
+		if sum(len(layer) for layer in layers) == self.vertices:
+			return layers
+		else:
+			return None
+		
 			
 
 
@@ -322,11 +271,11 @@ if __name__ == "__main__":
 		# print(gen_erdos_reyni_directed(20, 0.1))
 		random.seed(0)
 		np.random.seed(0)
-		G = gen_DAG(5, 0.8)
+		G = gen_DAG(10, 0.5)
 		print(G)
-		s = TopSorter(G)
-		s.run()
-		print(s)
+		print(G.topological_sort())
 
-		# print(G.topological_sort())
+		G = gen_erdos_reyni_directed(10, 0.1)
+		print(G)
+		print(G.topological_sort())
 
