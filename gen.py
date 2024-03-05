@@ -86,30 +86,6 @@ class StandardGraph:
 			return layers
 		else:
 			return None
-		
-			
-
-
-
-# https://en.wikipedia.org/wiki/Erdős–Rényi_model
-def gen_erdos_reyni(num_vertices: int, num_edges:int = None, p:float = None) -> StandardGraph:
-	if num_edges is None:
-		assert p is not None, "Expected num_edges or probability p"
-	else:
-		assert p is None, "Specify only one of num_edges and probability p"
-
-	num_edges = num_edges or round(p * math.comb(num_vertices, 2))
-
-	print(num_edges)
-
-	edges: List[Tuple[int, int]] = []
-
-	for _ in range(num_edges):
-		source: int = random.randint(0, num_vertices-1)
-		target: int = random.randint(0, num_vertices-1)
-		edges.append((source, target))
-
-	return StandardGraph(vertices=num_vertices, edges=sorted(edges))
 
 def random_subset(set: list, p: float) -> list:
 	n = np.random.binomial(len(set), p)
@@ -129,9 +105,6 @@ def complete_graph(vertices: int) -> StandardGraph:
 		vertices,
 		[(s, t) for s in range(vertices) for t in range(vertices)]
 	)
-
-def gen_average_degree(num_vertices: int, average_degree: int) -> StandardGraph:
-	return gen_erdos_reyni(num_vertices=num_vertices, num_edges=round(num_vertices * average_degree / 2))
 
 def linear_graph(vertices: int) -> StandardGraph:
 	edges = list(zip(range(vertices),range(1,vertices)))
@@ -166,6 +139,18 @@ def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
 	]
 	
 	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
+
+def shuffle_vertex_names(graph: StandardGraph) -> StandardGraph:
+	'''
+	Some algorithms might be advantaged by the longest path being 0 -> 1 -> 2 etc,
+	so use this to shuffle the vertex names and the edges.
+	'''
+	mapper = np.random.permutation(graph.vertices)
+
+	edges = [(mapper[i], mapper[j]) for (i,j) in graph.edges]
+	random.shuffle(edges)
+
+	return StandardGraph(graph.vertices, edges)
 
 class ExpandableGraph:
 	"""
@@ -263,19 +248,24 @@ def gen_DAG(vertices: int, p: float):
 
 	return StandardGraph(vertices, edges)
 
+if __name__ == "__main__":
+	random.seed(0)
+	np.random.seed(0)
+	n = 50
+	d = 3
+	p = d/n
+	graph = gen_erdos_reyni_directed(100, 0.011)
+	print(graph)
 	
 
-if __name__ == "__main__":
-    # print(gen_planted_hamiltonian(7, p = 0.2).undirected_str())
-    # print(LinearGraph(15).expand(0.5))
-		# print(gen_erdos_reyni_directed(20, 0.1))
-		random.seed(0)
-		np.random.seed(0)
-		G = gen_DAG(10, 0.5)
-		print(G)
-		print(G.topological_sort())
+	# print(shuffle_vertex_names(gen_planted_path(n, p)))
+	# print(LinearGraph(15).expand(0.5))
+	# print(gen_erdos_reyni_directed(20, 0.1))
+	# G = gen_DAG(10, 0.5)
+	# print(G)
+	# print(G.topological_sort())
 
-		G = gen_erdos_reyni_directed(10, 0.1)
-		print(G)
-		print(G.topological_sort())
+	# G = gen_erdos_reyni_directed(10, 0.1)
+	# print(G)
+	# print(G.topological_sort())
 
