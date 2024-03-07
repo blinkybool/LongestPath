@@ -1,6 +1,11 @@
 from collections import deque
 
 class NeighborsGraph:
+  """
+  This class represents a graph by storing for each node a sets of neighboring nodes.
+  This class only allows nodes that have neighbors. 
+  In other words there are no isolated nodes.
+  """
   def __init__(self, standard_graph):
     vertices = range(standard_graph.vertices)
     self.in_nodes = {}
@@ -9,9 +14,15 @@ class NeighborsGraph:
     self.add_edges(standard_graph.edges)
 
   def vertices(self):
+    """
+    The list of vertices of the graph.
+    """
     return list(self.in_nodes.keys())
 
   def add_edges(self, edges):
+    """
+    Mutably adds a list of edges to the graph.
+    """
     for (s, t) in edges:
       if s not in self.out_nodes:
         self.out_nodes[s] = set()
@@ -26,6 +37,10 @@ class NeighborsGraph:
       self.in_nodes[t].add(s)
 
   def remove_nodes(self, nodes):
+    """
+    Mutably removes a list of nodes from the graph.
+    The edges connected to these nodes are also removed.
+    """
     for v in nodes:
       for t in self.out_nodes[v]:
         self.in_nodes[t].remove(v)
@@ -35,6 +50,9 @@ class NeighborsGraph:
       del self.out_nodes[v]
 
   def successors(self, nodes):
+    """
+    Returns a set containing all nodes reachable from the `nodes` list in one forward step.
+    """
     out = set()
 
     for v in nodes:
@@ -44,16 +62,32 @@ class NeighborsGraph:
     return out
 
   def find_initial_nodes(self, nodes):
+    """
+    Returns the set of all nodes that have no incomming edges.
+    """
     return set(
       v for v in nodes
       if len(self.in_nodes[v]) == 0
     )
 
   def shortest_path(self, source, target):
+    """
+    Returns the shortest path going from the source node to the target node.
+    """
+    # We find the shortest path using breath first search.
+    
+    # We maintain a queue of pairs of nodes (s, t) where t is a node to be considered
+    # and s is a preceding node. 
+    # By following the chain of preceding nodes one always finds a shortest path to source.
     queue = deque([(source, t) for t in self.out_nodes[source]])
+
+    # A set of nodes that have already been visited
     visited = set()
+
+    # This dict points each node that has been considered to its preceding node.
     tree = {}
 
+    # Perorms the breath first search.
     while True:
       if len(queue) == 0: return None
       
@@ -68,8 +102,8 @@ class NeighborsGraph:
 
       visited.add(v)
 
+    # Builds the path.
     path = [target]
-
     node = target
     while node != source:
       node = tree[node]
@@ -80,6 +114,14 @@ class NeighborsGraph:
     return path    
 
   def shortest_path_from_vertices(self, sources, target):
+    """
+    Returns the shortest path going from a list of sources to a single target.
+    """
+    # We reuse the shortest_path algorithm between two specific nodes by
+    # adding a new node which we connect to all nodes in sources.
+    # We then find the longest path from this new node to the target 
+    # and we then remove the new node again from the path and from the graph.
+
     new_vertex = max(self.vertices()) + 1
     
     self.add_edges((new_vertex, s) for s in sources)
