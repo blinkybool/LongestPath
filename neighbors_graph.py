@@ -8,6 +8,9 @@ class NeighborsGraph:
 
     self.add_edges(standard_graph.edges)
 
+  def vertices(self):
+    return list(self.in_nodes.keys())
+
   def add_edges(self, edges):
     for (s, t) in edges:
       if s not in self.out_nodes:
@@ -76,6 +79,19 @@ class NeighborsGraph:
 
     return path    
 
+  def shortest_path_from_vertices(self, sources, target):
+    new_vertex = max(self.vertices()) + 1
+    
+    self.add_edges((new_vertex, s) for s in sources)
+
+    path = self.shortest_path(new_vertex, target)
+
+    self.remove_nodes([new_vertex])
+
+    if path == None:
+      return None
+    else:
+      return path[1:]
 
 
 

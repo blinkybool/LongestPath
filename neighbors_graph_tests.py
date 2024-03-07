@@ -36,5 +36,21 @@ class TestGen(unittest.TestCase):
       G = NeighborsGraph(linear_graph(5))
       self.assertEqual(G.successors({2}), {3})
 
+    def test_vertices(self):
+      G = NeighborsGraph(linear_graph(5))
+      self.assertEqual(G.vertices(), [0,1,2,3,4])
+
+    def test_shortest_path_from_vertices1(self):
+      G = NeighborsGraph(StandardGraph(5,
+        [(0,1), (1,2), (2,3), (0,4), (4, 3)]
+      ))
+      self.assertEqual(G.shortest_path_from_vertices([0], 3), [0,4,3])
+
+    def test_shortest_path_from_vertices1(self):
+      G = NeighborsGraph(StandardGraph(6,
+        [(0,1),(1,2),(3,4),(0,5),(5,4)]
+      ))
+      self.assertEqual(G.shortest_path_from_vertices([0,1], 4), [0,5,4])
+
 if __name__ == '__main__':
     unittest.main()
