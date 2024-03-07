@@ -3,12 +3,48 @@ from collections import deque
 class NeighborsGraph:
   def __init__(self, standard_graph):
     vertices = range(standard_graph.vertices)
-    self.in_nodes = {v : set() for v in vertices}
-    self.out_nodes = {v : set() for v in vertices}
+    self.in_nodes = {}
+    self.out_nodes = {}
 
-    for (s, t) in standard_graph.edges:
-      self.out_nodes[s].add(t)
+    self.add_edges(standard_graph.edges)
+
+  def add_edges(self, edges):
+    for (s, t) in edges:
+      if s not in self.out_nodes:
+        self.out_nodes[s] = set()
+      if s not in self.in_nodes:
+        self.in_nodes[s] = set()
+      if t not in self.out_nodes:
+        self.out_nodes[t] = set()
+      if t not in self.in_nodes:
+        self.in_nodes[t] = set()  
+
+      self.out_nodes[s].add(t)        
       self.in_nodes[t].add(s)
+
+  def remove_nodes(self, nodes):
+    for v in nodes:
+      for t in self.out_nodes[v]:
+        self.in_nodes[t].remove(v)
+      for s in self.in_nodes[v]:
+        self.out_nodes[s].remove(v)
+      del self.in_nodes[v]
+      del self.out_nodes[v]
+
+  def successors(self, nodes):
+    out = set()
+
+    for v in nodes:
+      for t in self.out_nodes[v]:
+        out.add(t)
+
+    return out
+
+  def find_initial_nodes(self, nodes):
+    return set(
+      v for v in nodes
+      if len(self.in_nodes[v]) == 0
+    )
 
   def shortest_path(self, source, target):
     queue = deque([(source, t) for t in self.out_nodes[source]])
