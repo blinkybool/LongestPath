@@ -1,4 +1,7 @@
 class TopSorter:
+	"""
+	Deprecated
+	"""
 	# Definition: An initial node is a node which has no incoming edges.
 
 	# We divide a graph into layers in the following manner:

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List, Tuple, Callable
 import numpy as np
 from topsort import TopSorter
-
+from neighbors_graph import NeighborsGraph
 
 @dataclass
 class StandardGraph:
@@ -80,7 +80,17 @@ class StandardGraph:
 		Returns a topological sorting if the graph is acyclic.
 		Returns None if the graph contains a cycle.
 		"""
-		layers = TopSorter(self).run()
+		layers = []
+		graph = NeighborsGraph(self)
+		nodes_to_consider = list(range(self.vertices))
+
+		while True:
+			initial_nodes = graph.find_initial_nodes(nodes_to_consider)
+			if len(initial_nodes) == 0: break
+			layers.append(initial_nodes)
+
+			nodes_to_consider = graph.successors(initial_nodes)
+			graph.remove_nodes(initial_nodes)
 		
 		if sum(len(layer) for layer in layers) == self.vertices:
 			return layers
@@ -251,19 +261,19 @@ def gen_DAG(vertices: int, p: float):
 if __name__ == "__main__":
 	random.seed(0)
 	np.random.seed(0)
-	n = 50
-	d = 3
-	p = d/n
-	graph = gen_erdos_reyni_directed(100, 0.011)
-	print(graph)
+	# n = 50
+	# d = 3
+	# p = d/n
+	# graph = gen_erdos_reyni_directed(100, 0.011)
+	# print(graph)
 	
 
 	# print(shuffle_vertex_names(gen_planted_path(n, p)))
 	# print(LinearGraph(15).expand(0.5))
 	# print(gen_erdos_reyni_directed(20, 0.1))
-	# G = gen_DAG(10, 0.5)
-	# print(G)
-	# print(G.topological_sort())
+	G = gen_DAG(10, 0.5)
+	print(G)
+	print(G.topological_sort())
 
 	# G = gen_erdos_reyni_directed(10, 0.1)
 	# print(G)
