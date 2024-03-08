@@ -36,5 +36,12 @@ class TestGen(unittest.TestCase):
       G = NeighborsGraph(linear_graph(5))
       self.assertEqual(G.successors({2}), {3})
 
+    def test_is_path(self):
+      G = NeighborsGraph(linear_graph(5))
+      self.assertEqual(G.is_path([0,1,2,3,4]), True)
+      self.assertEqual(G.is_path([0,1,1,2,3,4]), False)
+      self.assertEqual(G.is_path([0,1,3,4]), False)
+      self.assertEqual(G.is_path([]), True)
+
 if __name__ == '__main__':
     unittest.main()

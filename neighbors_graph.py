@@ -76,6 +76,21 @@ class NeighborsGraph:
 
     return path    
 
+  def is_path(self, vertices):
+    visited = set()
 
+    if len(vertices) == 0: return True
 
+    for (s,t) in zip(vertices, vertices[1:]):
+      if s in visited:
+        return False
 
+      visited.add(s)
+
+      if t not in self.out_nodes[s]:
+        return False
+
+    if vertices[-1] in visited:
+      return False
+
+    return True
