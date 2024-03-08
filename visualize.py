@@ -56,22 +56,44 @@ class VisualizableGraph:
         for s in self.otherVertices:
             H.add_node(s,color='b')
         edges = H.edges()
-        colors = [H[u][v]['color'] for u,v in edges]
+        nodes = H.nodes()
+        ecolors = [H[u][v]['color'] for u,v in edges]
+        ncolors =[H.nodes[u]['color'] for u in nodes]
 
 
-        nx.draw(H,  edge_color=colors, width=3,with_labels=True)
+        nx.draw(H,  edge_color=ecolors, node_color= ncolors, width=3,with_labels=True)
 
         plt.show()
-
 
 
 def gen_visualizableGraph(G: StandardGraph) -> VisualizableGraph:
     return(VisualizableGraph(G=G,pathEdges=[],pathVertices=[],otherEdges=[],otherVertices=[]))
 
 
+def read_longest_path(filename, )-> VisualizableGraph:
+    return 
+
+
+
+# if __name__ == "__main__":
+#     G=StandardGraph()
+    
+
+
+# G=LinearGraph(15).expand(0.5)
+# VG = gen_visualizableGraph(G)
+# path =[]
+# for i in range(14):
+#     path.append((i,i+1))
+# VG.visualize(path=path)
+
+def visualize_graph(G, path):
+    VG = gen_visualizableGraph(G)
+    VG.visualize(path=path)
+
+
 G=LinearGraph(15).expand(0.5)
-VG = gen_visualizableGraph(G)
 path =[]
 for i in range(14):
     path.append((i,i+1))
-VG.visualize(path=path)
+visualize_graph(G,path=path)
