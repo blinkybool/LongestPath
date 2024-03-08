@@ -4,3 +4,5 @@ lpath
 venv/
 __pycache__
 .vscode/**
+envs/
+**/.ipynb_checkpoints/
