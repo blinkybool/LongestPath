@@ -123,7 +123,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 
 	// Lookup table for checking if 
 	bool *path_set = malloc(sizeof(bool) * v);
-	memset(path_set, false, v);
+	memset(path_set, false, sizeof(bool) * v);
 	
 	int len = 1;
 	int vertex = 0;
@@ -132,6 +132,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 	int branch_index = 0;
 	bool backtrack;
 	path_set[vertex] = true;
+	best_path->count = 0;
 
 	// Each loop, either try to extend the path, or backtrack to try the next
 	// edge out of the previous vertex.
@@ -193,16 +194,17 @@ typedef struct {
 	bool *ignore_set;
 } DFS_State;
 
-DFS_State new_DFS_State(int vertices) {
-	DFS_State state;
-	state.stack.elems = (int *) malloc(vertices * vertices * sizeof(int));
-	state.ignore_set = (bool *) malloc(vertices * sizeof(bool));
+DFS_State *new_DFS_State(int vertices) {
+	DFS_State *state = malloc(sizeof(DFS_State));
+	state->stack.elems = (int *) malloc(vertices * vertices * sizeof(int));
+	state->ignore_set = (bool *) malloc(vertices * sizeof(bool));
 	return state;
 }
 
 void free_DFS_State(DFS_State *state) {
 	free(state->stack.elems);
 	free(state->ignore_set);
+	free(state);
 }
 
 // Pass dfs_state so memory can be re-used instead of allocated every time.
@@ -230,7 +232,7 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 	int v = graph->vertices;
 
 	best_path->count = 0;
-	DFS_State heuristic_dfs_state = new_DFS_State(v);
+	DFS_State *heuristic_dfs_state = new_DFS_State(v);
 
 	// The current path (so far)
 	int *path = malloc(sizeof(int) * v);
@@ -239,7 +241,7 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 
 	// Lookup table for vertices belonging to path
 	bool *path_set = malloc(sizeof(bool) * v);
-	memset(path_set, false, v);
+	memset(path_set, false, sizeof(bool) * v);
 	
 	int len = 1;
 	int vertex = 0;
@@ -260,7 +262,7 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 			if (!path_set[next_vertex]) {
 
 				if (best_path->count > 0) {
-					int future_path_bound = subgraph_size_dfs(&heuristic_dfs_state, graph, next_vertex, path_set);
+					int future_path_bound = subgraph_size_dfs(heuristic_dfs_state, graph, next_vertex, path_set);
 					if (len + future_path_bound <= best_path->count) {
 						// Continuing the path through next_vertex cannot yield a longer path than current solution
 						continue;
@@ -308,7 +310,7 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 		}
 	}
 
-	free_DFS_State(&heuristic_dfs_state);
+	free_DFS_State(heuristic_dfs_state);
 	free(path);
 	free(branch_indices);
 	free(path_set);

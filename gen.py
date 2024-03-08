@@ -21,6 +21,12 @@ class StandardGraph:
 	# 8 9
 	def __str__(self) -> str:
 		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in self.edges)
+	
+	def to_matrix(self) -> List[List[bool]]:
+		matrix = [[False for _ in range(self.vertices)] for _ in range(self.vertices)]
+		for (i,j) in self.edges:
+			matrix[i][j] = True
+		return matrix
 
 	def clone(self):
 		"""
@@ -105,10 +111,14 @@ def random_subset(set: list, p: float) -> list:
 
 # This is a more direct implementation of Erdos Renyi.
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
-def gen_erdos_reyni_directed(num_vertices: int, p:float = None) -> StandardGraph:
+def gen_erdos_reyni_directed(num_vertices: int, p:float) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
+
+def gen_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
+	p = average_degree / num_vertices
+	return gen_erdos_reyni_directed(num_vertices, p)
 
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(
@@ -273,7 +283,7 @@ if __name__ == "__main__":
 	# print(gen_erdos_reyni_directed(20, 0.1))
 	G = gen_DAG(10, 0.5)
 	print(G)
-	print(G.topological_sort())
+	# print(G.topological_sort())
 
 	# G = gen_erdos_reyni_directed(10, 0.1)
 	# print(G)
