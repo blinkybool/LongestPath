@@ -221,6 +221,15 @@ class LinearGraph(ExpandableGraph):
 	def __repr__(self):
 		return f"{LinearGraph.__name__}({self.graph.vertices})"
 
+def compute_index_dict(set_list):
+	result = {}
+
+	for i, s in enumerate(set_list):
+		for x in s:
+			result[x] = i
+
+	return result
+
 @dataclass
 class DAG(ExpandableGraph):
 	graph: StandardGraph
@@ -236,15 +245,18 @@ class DAG(ExpandableGraph):
 		self.lower_topo_sorting = self.graph.topological_sort()
 		self.graph.invert_edges()
 		self.upper_topo_sorting = self.graph.topological_sort()
-		self.upper_topo_sorting.reverse()
 		self.graph.invert_edges()
 		self.neighbors_graph = NeighborsGraph(self.graph)
+		
+		self.lower_topo_sorting_by_node = compute_index_dict(self.lower_topo_sorting)
+		self.upper_topo_sorting_by_node = compute_index_dict(self.upper_topo_sorting)
+
 
 	def backward_least_expansion_distance(self, v: int):
-		pass
+		return self.lower_topo_sorting_by_node[v]
 
 	def forward_least_expansion_distance(self, v: int):
-		pass
+		return self.upper_topo_sorting_by_node[v]
 
 	def longest_path_length(self):
 		"""
@@ -278,9 +290,6 @@ class DAG(ExpandableGraph):
 
 		return path
 
-
-
-
 def gen_DAG(vertices: int, p: float):
 	"""
 	Generates random DAGs in a very adhoc way.
@@ -304,20 +313,23 @@ def gen_DAG(vertices: int, p: float):
 
 
 if __name__ == "__main__":
-	random.seed(3)
-	np.random.seed(3)
+	pass
+	# random.seed(3)
+	# np.random.seed(3)
 	# n = 50
 	# d = 3
 	# p = d/n
 	# graph = gen_erdos_reyni_directed(100, 0.011)
 	# print(graph)
-	G = DAG(gen_DAG(10, 0.5))
-	print(G.graph)
-	print(G.lower_topo_sorting)
-	print(G.upper_topo_sorting)
-	print(G.find_longest_path())
-	
-	path = G.find_longest_path()
+	# G = DAG(gen_DAG(20, 0.8))
+	# print(G.graph)
+	# print(G.lower_topo_sorting)
+	# print(G.upper_topo_sorting)
+	# print(G.find_longest_path())
+	# print(G.lower_topo_sorting_by_node)
+	# print(G.backward_least_expansion_distance(4))
+	# print(G.forward_least_expansion_distance(4))
+	# print(G.expand(0.5))
 
 	# print(shuffle_vertex_names(gen_planted_path(n, p)))
 	# print(LinearGraph(15).expand(0.5))
