@@ -118,5 +118,22 @@ class TestGen(unittest.TestCase):
 
         self.assertNotEqual(G.topological_sort(), None)
 
+    def test_DAG_longest_path_length(self):
+        random.seed(3)
+        np.random.seed(3)
+
+        G = DAG(gen_DAG(10, 0.5))
+        self.assertEqual(G.longest_path_length(), 4)
+
+    def test_DAG_longest_path(self):
+        random.seed(3)
+        np.random.seed(3)
+
+        G = DAG(gen_DAG(10, 0.5))
+        path = G.find_longest_path()
+        self.assertEqual(G.neighbors_graph.is_path(path), True)
+        self.assertEqual(len(path), 4)
+
+
 if __name__ == '__main__':
     unittest.main()
