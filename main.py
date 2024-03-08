@@ -11,4 +11,4 @@ G = DAG(gen_DAG(10, 0.5))
 
 path = G.find_longest_path()
 
-visualize_graph(G.expand(1), list(zip(path, path[1:])))
+visualize_graph(G.expand(1), path)
