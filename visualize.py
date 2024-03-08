@@ -91,9 +91,3 @@ def visualize_graph(G, path):
     VG = gen_visualizableGraph(G)
     VG.visualize(path=path)
 
-
-G=LinearGraph(15).expand(0.5)
-path =[]
-for i in range(14):
-    path.append((i,i+1))
-visualize_graph(G,path=path)

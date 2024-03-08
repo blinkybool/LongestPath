@@ -316,6 +316,8 @@ if __name__ == "__main__":
 	print(G.lower_topo_sorting)
 	print(G.upper_topo_sorting)
 	print(G.find_longest_path())
+	
+	path = G.find_longest_path()
 
 	# print(shuffle_vertex_names(gen_planted_path(n, p)))
 	# print(LinearGraph(15).expand(0.5))
