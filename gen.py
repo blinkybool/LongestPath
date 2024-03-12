@@ -4,104 +4,7 @@ from typing import List, Tuple, Callable
 import numpy as np
 from topsort import TopSorter
 from neighbors_graph import NeighborsGraph
-
-@dataclass
-class StandardGraph:
-	vertices: int
-	edges: List[Tuple[int, int]]
-
-	# Standard format for graphs is the vertex count on the first line
-	# and every subsequent line has a space seperated pair of ints (non-neg)
-	# representing edges between vertices
-	# Example (with 10 vertices, 3 edges):
-	# 
-	# 10
-	# 0 5
-	# 2 7
-	# 8 9
-	def __str__(self) -> str:
-		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in self.edges)
-	
-	def to_matrix(self) -> List[List[bool]]:
-		matrix = [[False for _ in range(self.vertices)] for _ in range(self.vertices)]
-		for (i,j) in self.edges:
-			matrix[i][j] = True
-		return matrix
-
-	def clone(self):
-		"""
-		Makes a deep copy of the graph
-		"""
-		return StandardGraph(self.vertices, self.edges[:])
-
-	def wedge(self, other, self_vert, other_vert):
-		"""
-		Warning: This mutates the graph.
-
-		Extends self by merging it with other while making sure that exactly the vertices self_vert and other_vert become identified.
-		"""
-		n = self.vertices
-		self.vertices += other.vertices - 1
-
-		def other_map(v):
-			if v < other_vert:
-				return n + v
-			elif v == other_vert:
-				return self_vert
-			else:
-				return n + v - 1
-
-		self.edges += [(other_map(s), other_map(t)) for (s, t) in other.edges]
-
-	def undirected_str(self) -> str:
-		"""
-		Returns a string representing the graph, leaving out direction and selfloops.
-		"""
-		edges = set(frozenset(e) for e in self.edges if e[0] != e[1])
-
-		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in edges)
-
-	def from_undirected(vertices, edges):
-		"""
-		Freely turns an undirected representation of a graph into a directed graph.
-		In other words, it adds all selfloops and oposites of edges from edges.
-		"""
-		return StandardGraph(vertices, 
-				list(set([(v, v) for v in range(vertices)]
-				+ edges
-				+ [(t, s) for (s, t) in edges]))
-			)
-
-	def invert_edges(self):
-		"""
-		WARNING: Mutates the graph.
-		This flips all adges.
-		"""
-		for i, (s, t) in enumerate(self.edges):
-			self.edges[i] = (t, s)
-
-	def topological_sort(self):
-		"""
-		Attempts to topologically sort a graph.
-		Returns a topological sorting if the graph is acyclic.
-		Returns None if the graph contains a cycle.
-		"""
-		layers = []
-		graph = NeighborsGraph(self)
-		nodes_to_consider = list(range(self.vertices))
-
-		while True:
-			initial_nodes = graph.find_initial_nodes(nodes_to_consider)
-			if len(initial_nodes) == 0: break
-			layers.append(initial_nodes)
-
-			nodes_to_consider = graph.successors(initial_nodes)
-			graph.remove_nodes(initial_nodes)
-		
-		if sum(len(layer) for layer in layers) == self.vertices:
-			return layers
-		else:
-			return None
+from standard_graph import StandardGraph, linear_graph, complete_graph
 
 def random_subset(set: list, p: float) -> list:
 	n = np.random.binomial(len(set), p)
@@ -120,15 +23,6 @@ def gen_average_degree_directed(num_vertices: int, average_degree: float) -> Sta
 	p = average_degree / num_vertices
 	return gen_erdos_reyni_directed(num_vertices, p)
 
-def complete_graph(vertices: int) -> StandardGraph:
-	return StandardGraph(
-		vertices,
-		[(s, t) for s in range(vertices) for t in range(vertices)]
-	)
-
-def linear_graph(vertices: int) -> StandardGraph:
-	edges = list(zip(range(vertices),range(1,vertices)))
-	return StandardGraph(vertices, edges)
 
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
 	"""
