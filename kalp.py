@@ -54,6 +54,7 @@ def export_KaLP_dimacs(path: str, vertices, edges):
         for s, t in undirected_directed_list:
             f.write(f"a {s + 1} {t + 1} 1\n")
 
+
 if __name__ == "__main__":
 	# print(check_KaLP_dimacs_format("datasets/rob-top/rob-top2000-KALP.dimacs"))
     export_KaLP_dimacs("test.dimacs", 2, [(0,1), (0,0)])
