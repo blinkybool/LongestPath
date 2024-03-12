@@ -72,5 +72,16 @@ class TestGen(unittest.TestCase):
             {0}, {1, 2, 3}, {4}    
         ])
 
+    def test_universal_nodes(self):
+        G = linear_graph(5)
+
+        G.add_universal_nodes()
+
+        self.assertEqualGraphs(G, StandardGraph(7, [
+            (0, 1), (1, 2), (2, 3), (3, 4),
+            (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6),
+            (0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6)
+        ]))
+
 if __name__ == '__main__':
     unittest.main()
