@@ -23,6 +23,7 @@ def check_KaLP_dimacs_format(path: str):
 
     vertices = set([v for (v, _) in edges] + [v for (_, v) in edges])
 
+    if min(vertices) <= 0: return f"Vertices must be greater than or equal to 1."
     if max(vertices) > nr_vertices: return f"Number of vertices is incorrect: {nr_vertices} claimed but there is a vertex of number '{max(vertices)}'"
 
     undirected = {frozenset([s, t]) for s, t in edges}
@@ -34,8 +35,26 @@ def check_KaLP_dimacs_format(path: str):
 
     if edges != undirected_directed_list: return "Graph format incorrect. NOTE: The graph should contain all back edges."
 
-    return "Correct", nr_vertices, nr_edges, max(vertices)
+    return "Correct", nr_vertices, nr_edges, edges
 
+def export_KaLP_dimacs(path: str, vertices, edges):
+    """
+    Writes a graph to a dimacs file in a format that KaLP will accept.
+    WARNING: KaLP wants vertices to be >= 1 so all vertices are shifted over by +1 in the output file. Note that the kalp command wants start and target vertex starting from 0 so KaLP subtracts 1 again.
+    WARNING: KaLP only accepts undirected graphs. Hence this function turns the graph into an undirected one by adding all back edges. Moreover, all selfloops are removed.
+    """
+
+    undirected = {frozenset([s, t]) for s, t in edges}
+    undirected_list = [tuple(e) for e in undirected if len(e) > 1]
+    undirected_directed_list = undirected_list + [(t, s) for (s, t) in undirected_list]
+
+    with open(path, "w") as f:
+        f.write(f"p sp {vertices} {len(undirected_directed_list)}\n")
+
+        for s, t in undirected_directed_list:
+            f.write(f"a {s + 1} {t + 1} 1\n")
 
 if __name__ == "__main__":
-	print(check_KaLP_dimacs_format("datasets/rob-top/rob-top2000-KALP.dimacs"))
+	# print(check_KaLP_dimacs_format("datasets/rob-top/rob-top2000-KALP.dimacs"))
+    export_KaLP_dimacs("test.dimacs", 2, [(0,1), (0,0)])
+    print(check_KaLP_dimacs_format("test.dimacs"))
