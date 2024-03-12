@@ -1,3 +1,4 @@
+from standard_graph import StandardGraph, linear_graph
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -35,27 +36,32 @@ def check_KaLP_dimacs_format(path: str):
 
     if edges != undirected_directed_list: return "Graph format incorrect. NOTE: The graph should contain all back edges."
 
-    return "Correct", nr_vertices, nr_edges, edges
+    return "Correct", StandardGraph(nr_vertices, [(s - 1, t - 1) for (s, t) in edges])
 
-def export_KaLP_dimacs(path: str, vertices, edges):
+def export_KaLP_dimacs(path: str, graph: StandardGraph):
     """
     Writes a graph to a dimacs file in a format that KaLP will accept.
     WARNING: KaLP wants vertices to be >= 1 so all vertices are shifted over by +1 in the output file. Note that the kalp command wants start and target vertex starting from 0 so KaLP subtracts 1 again.
     WARNING: KaLP only accepts undirected graphs. Hence this function turns the graph into an undirected one by adding all back edges. Moreover, all selfloops are removed.
     """
 
-    undirected = {frozenset([s, t]) for s, t in edges}
+    undirected = {frozenset([s, t]) for s, t in graph.edges}
     undirected_list = [tuple(e) for e in undirected if len(e) > 1]
     undirected_directed_list = undirected_list + [(t, s) for (s, t) in undirected_list]
 
     with open(path, "w") as f:
-        f.write(f"p sp {vertices} {len(undirected_directed_list)}\n")
+        f.write(f"p sp {graph.vertices} {len(undirected_directed_list)}\n")
 
         for s, t in undirected_directed_list:
             f.write(f"a {s + 1} {t + 1} 1\n")
 
+def export_KaLP_dimacs_with_universal_nodes(path: str, graph: StandardGraph):
+    graph = graph.clone()
+    graph.add_universal_nodes()
+    export_KaLP_dimacs(path, graph)
+
 
 if __name__ == "__main__":
 	# print(check_KaLP_dimacs_format("datasets/rob-top/rob-top2000-KALP.dimacs"))
-    export_KaLP_dimacs("test.dimacs", 2, [(0,1), (0,0)])
+    export_KaLP_dimacs_with_universal_nodes("test.dimacs", linear_graph(3))
     print(check_KaLP_dimacs_format("test.dimacs"))
