@@ -1,6 +1,9 @@
 from standard_graph import StandardGraph, linear_graph
 import os
 import subprocess
+from gen import gen_planted_path, gen_erdos_reyni_directed
+import random
+import numpy as np
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -40,7 +43,8 @@ def check_KaLP_dimacs_format(path: str):
 
     return "Correct", StandardGraph(nr_vertices, [(s - 1, t - 1) for (s, t) in edges])
 
-def export_KaLP_dimacs(path: str, graph: StandardGraph):
+
+def export_KaLP_dimacs(path: str, graph: StandardGraph, weights=lambda s, t: 1):
     """
     Writes a graph to a dimacs file in a format that KaLP will accept.
     WARNING: KaLP wants vertices to be >= 1 so all vertices are shifted over by +1 in the output file. Note that the kalp command wants start and target vertex starting from 0 so KaLP subtracts 1 again.
@@ -55,13 +59,58 @@ def export_KaLP_dimacs(path: str, graph: StandardGraph):
         f.write(f"p sp {graph.vertices} {len(undirected_directed_list)}\n")
 
         for s, t in undirected_directed_list:
-            f.write(f"a {s + 1} {t + 1} 1\n")
+            f.write(f"a {s + 1} {t + 1} {weights(s, t)}\n")
 
 def export_KaLP_dimacs_with_universal_nodes(path: str, graph: StandardGraph):
     graph = graph.clone()
     graph.add_universal_nodes()
-    export_KaLP_dimacs(path, graph)
 
+    univ = {graph.vertices - 1, graph.vertices - 2}
+
+    export_KaLP_dimacs(
+        path, 
+        graph,
+        lambda s, t: 0 if s in univ or t in univ else 1
+    )
+
+
+def export_KaLP_metis(path: str, graph: StandardGraph):
+    undirected = {frozenset([s, t]) for s, t in graph.edges}
+    undirected_list = [tuple(e) for e in undirected if len(e) > 1]
+
+    neighbor_dict = {v : set() for v in range(graph.vertices)}
+
+    for (s, t) in undirected_list:
+        neighbor_dict[s].add(t)
+        neighbor_dict[t].add(s)
+
+    with open(path, "w") as f:
+        f.write(f"{graph.vertices} {len(undirected_list)}\n")
+
+        for v, neighbors in neighbor_dict.items():
+            f.write(" ".join(str(u + 1) for u in neighbors) + "\n")
+
+def export_KaLP_metis_with_universal_nodes(path: str, graph: StandardGraph):
+    graph = graph.clone()
+    graph.add_universal_nodes()
+
+    # univ = {graph.vertices - 1, graph.vertices - 2}
+
+    export_KaLP_metis(
+        path, 
+        graph,
+    )
+
+def check_KaLP_metis(
+    path: str, 
+    kalp_graphchecker_path = (os.environ['KALP_PATH'] + "/graphchecker")
+    ):
+    result = subprocess.run(
+        [kalp_graphchecker_path, path], 
+        stdout=subprocess.PIPE, 
+        text=True
+    )
+    return result.stdout
 
 def run_KaLP_with_start_and_target(
         path: str, 
@@ -70,11 +119,13 @@ def run_KaLP_with_start_and_target(
         threads=None,
         steps=None,
         partition_configuration=None,
-        kalp_path=os.environ['KALP_PATH']
+        kalp_path = (os.environ['KALP_PATH'] + "/kalp")
     ):
     """
     Runs KaLP on the file specified by `path`. 
     NOTE: Uses the environment variable KALP_PATH by default if the argument kalp_path is not provided.
+
+    Note that start and target here should be between 0 and nr_vertices - 1.
     """
     command = [
         kalp_path, 
@@ -90,6 +141,8 @@ def run_KaLP_with_start_and_target(
         command.append(f"--steps={steps}")
     if partition_configuration != None:
         command.append(f"--partition_configuration={partition_configuration}")
+
+    print(command)
 
     result = subprocess.run(
         command, 
@@ -127,7 +180,27 @@ def run_KaLP_universal(path: str, *args, **kwargs):
         return [], stdout
 
 if __name__ == "__main__":
-    export_KaLP_dimacs_with_universal_nodes("test.dimacs", linear_graph(5))
-    print(check_KaLP_dimacs_format("test.dimacs"))
-    print(os.environ['KALP_PATH'])
-    print(run_KaLP_universal("test.dimacs")[0])
+    random.seed(0)
+    np.random.seed(0)
+    G = gen_planted_path(20, 0)
+
+    # export_KaLP_metis("test.graph", G)
+    export_KaLP_metis_with_universal_nodes("test.graph", G)
+    print(check_KaLP_metis("test.graph"))
+
+    # export_KaLP_dimacs_with_universal_nodes("test.dimacs", G)
+    # export_KaLP_dimacs("test.dimacs", G)
+    # print(check_KaLP_dimacs_format("test.dimacs")[0])
+    
+    path, stdout = run_KaLP_with_start_and_target(
+        "test.graph", 0, 19,
+        threads=4
+    )
+    # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
+    #     1422, 1462,
+    #     threads=4, 
+    #     partition_configuration="fast"
+    # )
+
+    print(stdout)
+    print(path)
