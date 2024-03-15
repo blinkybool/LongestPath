@@ -1,0 +1,299 @@
+{
+  "version": 3,
+  "targets": {
+    "net7.0": {
+      "Google.OrTools/9.8.3296": {
+        "type": "package",
+        "dependencies": {
+          "Google.OrTools.runtime.linux-arm64": "9.8.3296",
+          "Google.OrTools.runtime.linux-x64": "9.8.3296",
+          "Google.OrTools.runtime.osx-arm64": "9.8.3296",
+          "Google.OrTools.runtime.osx-x64": "9.8.3296",
+          "Google.OrTools.runtime.win-x64": "9.8.3296",
+          "Google.Protobuf": "3.25.0"
+        },
+        "compile": {
+          "lib/net6.0/Google.OrTools.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Google.OrTools.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Google.OrTools.runtime.linux-arm64/9.8.3296": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/linux-arm64/native/google-ortools-native.so": {
+            "assetType": "native",
+            "rid": "linux-arm64"
+          },
+          "runtimes/linux-arm64/native/libortools.so.9": {
+            "assetType": "native",
+            "rid": "linux-arm64"
+          }
+        }
+      },
+      "Google.OrTools.runtime.linux-x64/9.8.3296": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/linux-x64/native/google-ortools-native.so": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          },
+          "runtimes/linux-x64/native/libortools.so.9": {
+            "assetType": "native",
+            "rid": "linux-x64"
+          }
+        }
+      },
+      "Google.OrTools.runtime.osx-arm64/9.8.3296": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/osx-arm64/native/google-ortools-native.dylib": {
+            "assetType": "native",
+            "rid": "osx-arm64"
+          },
+          "runtimes/osx-arm64/native/libortools.9.dylib": {
+            "assetType": "native",
+            "rid": "osx-arm64"
+          }
+        }
+      },
+      "Google.OrTools.runtime.osx-x64/9.8.3296": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/osx-x64/native/google-ortools-native.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          },
+          "runtimes/osx-x64/native/libortools.9.dylib": {
+            "assetType": "native",
+            "rid": "osx-x64"
+          }
+        }
+      },
+      "Google.OrTools.runtime.win-x64/9.8.3296": {
+        "type": "package",
+        "runtimeTargets": {
+          "runtimes/win-x64/native/google-ortools-native.dll": {
+            "assetType": "native",
+            "rid": "win-x64"
+          }
+        }
+      },
+      "Google.Protobuf/3.25.0": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/Google.Protobuf.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/Google.Protobuf.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Google.OrTools/9.8.3296": {
+      "sha512": "9IiyH4v8lrE5bJ62f8HtBG3QdmsZA4sn8/EsmT+42bfc7aAKYPnhGhssG4e6sulU9rNkeovO4cdxc7PfZ717hA==",
+      "type": "package",
+      "path": "google.ortools/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/bop/bop_parameters.proto",
+        "content/constraint_solver/assignment.proto",
+        "content/constraint_solver/demon_profiler.proto",
+        "content/constraint_solver/routing_enums.proto",
+        "content/constraint_solver/routing_parameters.proto",
+        "content/constraint_solver/search_limit.proto",
+        "content/constraint_solver/search_stats.proto",
+        "content/constraint_solver/solver_parameters.proto",
+        "content/glop/parameters.proto",
+        "content/graph/flow_problem.proto",
+        "content/linear_solver/linear_solver.proto",
+        "content/orLogo.png",
+        "content/pdlp/solve_log.proto",
+        "content/pdlp/solvers.proto",
+        "content/sat/boolean_problem.proto",
+        "content/sat/cp_model.proto",
+        "content/sat/cp_model_service.proto",
+        "content/sat/sat_parameters.proto",
+        "content/util/optional_boolean.proto",
+        "google.ortools.9.8.3296.nupkg.sha512",
+        "google.ortools.nuspec",
+        "lib/net462/Google.OrTools.dll",
+        "lib/net462/Google.OrTools.xml",
+        "lib/net6.0/Google.OrTools.dll",
+        "lib/net6.0/Google.OrTools.xml"
+      ]
+    },
+    "Google.OrTools.runtime.linux-arm64/9.8.3296": {
+      "sha512": "wSVE8JcVzozYgXMUGVyRAI7sC+HXYAiwmpe8n0YpTZAsXjYat1GA2+vbB8JUZAfSjwd09NqMzOPCaIW+2G2fDg==",
+      "type": "package",
+      "path": "google.ortools.runtime.linux-arm64/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/orLogo.png",
+        "google.ortools.runtime.linux-arm64.9.8.3296.nupkg.sha512",
+        "google.ortools.runtime.linux-arm64.nuspec",
+        "runtimes/linux-arm64/native/google-ortools-native.so",
+        "runtimes/linux-arm64/native/libortools.so.9"
+      ]
+    },
+    "Google.OrTools.runtime.linux-x64/9.8.3296": {
+      "sha512": "bIwy9lTTtkBUmmKCJ2zPwKIXWUNSBdvb8jeazga4mIgtopx2VWTtNfIrsBglZbpXCE4MYsWl03Dk3GYazxkayw==",
+      "type": "package",
+      "path": "google.ortools.runtime.linux-x64/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/orLogo.png",
+        "google.ortools.runtime.linux-x64.9.8.3296.nupkg.sha512",
+        "google.ortools.runtime.linux-x64.nuspec",
+        "runtimes/linux-x64/native/google-ortools-native.so",
+        "runtimes/linux-x64/native/libortools.so.9"
+      ]
+    },
+    "Google.OrTools.runtime.osx-arm64/9.8.3296": {
+      "sha512": "vHCUnGGpLFdxJ4j7eFiZBBCMpCFEEYcwiM4EFBF9vpfom6BbIex9dPa2Zuu2Bjt2XKjzX1NrjFDv8uzhgP43Tw==",
+      "type": "package",
+      "path": "google.ortools.runtime.osx-arm64/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/orLogo.png",
+        "google.ortools.runtime.osx-arm64.9.8.3296.nupkg.sha512",
+        "google.ortools.runtime.osx-arm64.nuspec",
+        "runtimes/osx-arm64/native/google-ortools-native.dylib",
+        "runtimes/osx-arm64/native/libortools.9.dylib"
+      ]
+    },
+    "Google.OrTools.runtime.osx-x64/9.8.3296": {
+      "sha512": "kyLAlIOvMuyL+OosdMstXx5hFIGj5OtNkAJ1oYWX5E+hd/WMtLQqIY0pxv5Rl4pYxi0kFRdApS8ZHnCSPrWjVQ==",
+      "type": "package",
+      "path": "google.ortools.runtime.osx-x64/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/orLogo.png",
+        "google.ortools.runtime.osx-x64.9.8.3296.nupkg.sha512",
+        "google.ortools.runtime.osx-x64.nuspec",
+        "runtimes/osx-x64/native/google-ortools-native.dylib",
+        "runtimes/osx-x64/native/libortools.9.dylib"
+      ]
+    },
+    "Google.OrTools.runtime.win-x64/9.8.3296": {
+      "sha512": "S3kBqbnULsZfyJ2TilzWC5xREWkM0D3W9I+Eaw20KP67HFQ/QnjeRlTAzZ1nVzLjR4XheY7VT0io/wIdwT4n1Q==",
+      "type": "package",
+      "path": "google.ortools.runtime.win-x64/9.8.3296",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/orLogo.png",
+        "google.ortools.runtime.win-x64.9.8.3296.nupkg.sha512",
+        "google.ortools.runtime.win-x64.nuspec",
+        "runtimes/win-x64/native/google-ortools-native.dll"
+      ]
+    },
+    "Google.Protobuf/3.25.0": {
+      "sha512": "pIEkH1IqZV1iK8J5MYdG1kOyY0EoQLB6yEKvBq12RYNtvGXwCvnQg5zQsFmcqAEPtIZvSqPozIbUZaEd5a2gCg==",
+      "type": "package",
+      "path": "google.protobuf/3.25.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "google.protobuf.3.25.0.nupkg.sha512",
+        "google.protobuf.nuspec",
+        "lib/net45/Google.Protobuf.dll",
+        "lib/net45/Google.Protobuf.pdb",
+        "lib/net45/Google.Protobuf.xml",
+        "lib/net5.0/Google.Protobuf.dll",
+        "lib/net5.0/Google.Protobuf.pdb",
+        "lib/net5.0/Google.Protobuf.xml",
+        "lib/netstandard1.1/Google.Protobuf.dll",
+        "lib/netstandard1.1/Google.Protobuf.pdb",
+        "lib/netstandard1.1/Google.Protobuf.xml",
+        "lib/netstandard2.0/Google.Protobuf.dll",
+        "lib/netstandard2.0/Google.Protobuf.pdb",
+        "lib/netstandard2.0/Google.Protobuf.xml"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net7.0": [
+      "Google.OrTools >= 9.8.3296"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\cevan\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj",
+      "projectName": "LongestPath",
+      "projectPath": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj",
+      "packagesPath": "C:\\Users\\cevan\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\cevan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net7.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net7.0": {
+        "targetAlias": "net7.0",
+        "dependencies": {
+          "Google.OrTools": {
+            "target": "Package",
+            "version": "[9.8.3296, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.100\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
