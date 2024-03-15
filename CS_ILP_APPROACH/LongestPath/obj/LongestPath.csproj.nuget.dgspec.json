@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj": {}
+    "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\LongestPath.csproj": {}
   },
   "projects": {
-    "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj": {
+    "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\LongestPath.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj",
+        "projectUniqueName": "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\LongestPath.csproj",
         "projectName": "LongestPath",
-        "projectPath": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\LongestPath.csproj",
+        "projectPath": "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\LongestPath.csproj",
         "packagesPath": "C:\\Users\\cevan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\cevan\\OneDrive - Universiteit Utrecht\\CSProjects\\LongestPath\\LongestPath\\obj\\",
+        "outputPath": "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\cevan\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -61,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101\\RuntimeIdentifierGraph.json"
         }
       }
     }

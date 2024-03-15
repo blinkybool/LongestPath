@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LongestPath")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a934fe0a0168b70ab17bf8a422fc2e51bcabbd01")]
 [assembly: System.Reflection.AssemblyProductAttribute("LongestPath")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LongestPath")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
