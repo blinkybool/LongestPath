@@ -6,3 +6,6 @@ __pycache__
 .vscode/**
 envs/
 **/.ipynb_checkpoints/
+
+
+.python-version
