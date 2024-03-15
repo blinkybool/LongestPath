@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
 
 	printf("Time: %fs\n", elapsed);
 
+	free(best_path->elems);
+	free(best_path);
 	free_graph(graph);
 	return 0;
 }

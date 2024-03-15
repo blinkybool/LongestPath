@@ -126,10 +126,20 @@ if __name__ == "__main__":
     path =[]
     for i in range(15):
         path.append(i)
+
     visualize_graph(G,path=path,directed=True, width =2)
+    visualize_graph(G,path=path)
 
 
+# if __name__ == "__main__":
+#     G=StandardGraph()
+    
 
 
-
-
+# G=LinearGraph(15).expand(0.5)
+# VG = gen_visualizableGraph(G)
+# path =[]
+# for i in range(14):
+#     path.append((i,i+1))
+# VG.visualize(path=path)
+# >>>>>>> 73df0facddc925bc6c5987dd10a05ca7c9ca840e

@@ -21,6 +21,12 @@ class StandardGraph:
 	# 8 9
 	def __str__(self) -> str:
 		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in self.edges)
+	
+	def to_matrix(self) -> List[List[bool]]:
+		matrix = [[False for _ in range(self.vertices)] for _ in range(self.vertices)]
+		for (i,j) in self.edges:
+			matrix[i][j] = True
+		return matrix
 
 	def clone(self):
 		"""
@@ -105,10 +111,14 @@ def random_subset(set: list, p: float) -> list:
 
 # This is a more direct implementation of Erdos Renyi.
 # https://en.wikipedia.org/wiki/Erdős–Rényi_model
-def gen_erdos_reyni_directed(num_vertices: int, p:float = None) -> StandardGraph:
+def gen_erdos_reyni_directed(num_vertices: int, p:float) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
+
+def gen_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
+	p = average_degree / num_vertices
+	return gen_erdos_reyni_directed(num_vertices, p)
 
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(
@@ -122,7 +132,7 @@ def linear_graph(vertices: int) -> StandardGraph:
 
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
 	"""
-	Generates a random graph such that its longest path length is exactly `path_length`.
+	Generates a random graph such that its longest path consits of exactly `path_length` many nodes.
 
 	Args:
 		p: The probability used in Erdos-Reyni to generate bubbles.
@@ -221,21 +231,74 @@ class LinearGraph(ExpandableGraph):
 	def __repr__(self):
 		return f"{LinearGraph.__name__}({self.graph.vertices})"
 
-@dataclass 
+def compute_index_dict(set_list):
+	result = {}
+
+	for i, s in enumerate(set_list):
+		for x in s:
+			result[x] = i
+
+	return result
+
+@dataclass
 class DAG(ExpandableGraph):
+	graph: StandardGraph
 	"""
+	NOTE: The graph should not be mutated!
 	These are directed acyclic graphs.
 	
 	For any paths p and q such that end(p) = start(q) we know that pq is a path.
 	Therefore computing the least expansion distances is easy in these cases.
 	"""
-	graph: StandardGraph
+	def __init__(self, graph: StandardGraph):
+		self.graph = graph
+		self.lower_topo_sorting = self.graph.topological_sort()
+		self.graph.invert_edges()
+		self.upper_topo_sorting = self.graph.topological_sort()
+		self.graph.invert_edges()
+		self.neighbors_graph = NeighborsGraph(self.graph)
+		
+		self.lower_topo_sorting_by_node = compute_index_dict(self.lower_topo_sorting)
+		self.upper_topo_sorting_by_node = compute_index_dict(self.upper_topo_sorting)
+
 
 	def backward_least_expansion_distance(self, v: int):
-		pass
+		return self.lower_topo_sorting_by_node[v]
 
 	def forward_least_expansion_distance(self, v: int):
-		pass
+		return self.upper_topo_sorting_by_node[v]
+
+	def longest_path_length(self):
+		"""
+		The amount of nodes in the longest path.
+		"""
+		return len(self.lower_topo_sorting)
+
+	def find_longest_path(self):
+		"""
+		Returns a longest path.
+		"""
+		layers = self.lower_topo_sorting[:]
+		path = []
+
+		while len(layers) > 0:
+			layer = layers.pop()
+
+			if len(path) == 0:
+				path.append(list(layer)[0])
+			else:
+				new_node = None
+
+				for s in self.neighbors_graph.in_nodes[path[-1]]:
+					if s in layer:
+						new_node = s
+						break
+		
+				path.append(new_node)
+
+		path.reverse()
+
+		return path
 
 def gen_DAG(vertices: int, p: float):
 	"""
@@ -258,23 +321,29 @@ def gen_DAG(vertices: int, p: float):
 
 	return StandardGraph(vertices, edges)
 
+
 if __name__ == "__main__":
-	random.seed(0)
-	np.random.seed(0)
+	pass
+	# random.seed(3)
+	# np.random.seed(3)
 	# n = 50
 	# d = 3
 	# p = d/n
 	# graph = gen_erdos_reyni_directed(100, 0.011)
 	# print(graph)
-	
+	# G = DAG(gen_DAG(20, 0.8))
+	# print(G.graph)
+	# print(G.lower_topo_sorting)
+	# print(G.upper_topo_sorting)
+	# print(G.find_longest_path())
+	# print(G.lower_topo_sorting_by_node)
+	# print(G.backward_least_expansion_distance(4))
+	# print(G.forward_least_expansion_distance(4))
+	# print(G.expand(0.5))
 
 	# print(shuffle_vertex_names(gen_planted_path(n, p)))
 	# print(LinearGraph(15).expand(0.5))
 	# print(gen_erdos_reyni_directed(20, 0.1))
-	G = gen_DAG(10, 0.5)
-	print(G)
-	print(G.topological_sort())
-
 	# G = gen_erdos_reyni_directed(10, 0.1)
 	# print(G)
 	# print(G.topological_sort())

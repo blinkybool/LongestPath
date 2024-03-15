@@ -3,14 +3,13 @@ from collections import deque
 class NeighborsGraph:
   """
   This class represents a graph by storing for each node a sets of neighboring nodes.
-  This class only allows nodes that have neighbors. 
-  In other words there are no isolated nodes.
   """
   def __init__(self, standard_graph):
     vertices = range(standard_graph.vertices)
     self.in_nodes = {}
     self.out_nodes = {}
 
+    self.add_vertices(range(standard_graph.vertices))
     self.add_edges(standard_graph.edges)
 
   def vertices(self):
@@ -18,6 +17,11 @@ class NeighborsGraph:
     The list of vertices of the graph.
     """
     return list(self.in_nodes.keys())
+
+  def add_vertices(self, nodes):
+    for v in nodes:
+      self.in_nodes[v] = set()
+      self.out_nodes[v] = set()
 
   def add_edges(self, edges):
     """
@@ -67,7 +71,7 @@ class NeighborsGraph:
     """
     return set(
       v for v in nodes
-      if len(self.in_nodes[v]) == 0
+      if v not in self.in_nodes or len(self.in_nodes[v]) == 0
     )
 
   def shortest_path(self, source, target):
@@ -135,5 +139,21 @@ class NeighborsGraph:
     else:
       return path[1:]
 
+  def is_path(self, vertices):
+    visited = set()
 
+    if len(vertices) == 0: return True
 
+    for (s,t) in zip(vertices, vertices[1:]):
+      if s in visited:
+        return False
+
+      visited.add(s)
+
+      if t not in self.out_nodes[s]:
+        return False
+
+    if vertices[-1] in visited:
+      return False
+
+    return True
