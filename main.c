@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 	
 	tick = clock();
 	switch (mode) {
-		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, true); break;
+		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, false); break;
 		case DFBNB: longest_path_DFBnB(best_path, graph); break;
 		default:
 			fprintf(stderr, "bad switch");
