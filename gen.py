@@ -238,6 +238,12 @@ if __name__ == "__main__":
 	# print(shuffle_vertex_names(gen_planted_path(n, p)))
 	# print(LinearGraph(15).expand(0.5))
 	# print(gen_erdos_reyni_directed(20, 0.1))
+
+	G = gen_DAG(10, 0.5)
+	print(G)
+	
+	# print(G.topological_sort())
+
 	# G = gen_erdos_reyni_directed(10, 0.1)
 	# print(G)
 	# print(G.topological_sort())
