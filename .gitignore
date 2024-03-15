@@ -8,4 +8,6 @@ envs/
 **/.ipynb_checkpoints/
 
 
+.env
+
 .python-version

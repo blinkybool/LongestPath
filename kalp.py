@@ -4,6 +4,7 @@ import subprocess
 from gen import gen_planted_path, gen_erdos_reyni_directed
 import random
 import numpy as np
+from dotenv import dotenv_values
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -104,7 +105,7 @@ def export_KaLP_metis_with_universal_nodes(path: str, graph: StandardGraph):
 
 def check_KaLP_metis(
     path: str, 
-    kalp_graphchecker_path = (os.environ['KALP_PATH'] + "/graphchecker")
+    kalp_graphchecker_path = (dotenv_values(".env")["KALP_PATH_TEST"] + "/graphchecker")
     ):
     result = subprocess.run(
         [kalp_graphchecker_path, path], 
@@ -120,7 +121,7 @@ def run_KaLP_with_start_and_target(
         threads=None,
         steps=None,
         partition_configuration=None,
-        kalp_path = (os.environ['KALP_PATH'] + "/kalp")
+        kalp_path = (dotenv_values(".env")["KALP_PATH_TEST"] + "/kalp")
     ):
     """
     Runs KaLP on the file specified by `path`. 
