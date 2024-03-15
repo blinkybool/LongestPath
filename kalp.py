@@ -87,7 +87,8 @@ def export_KaLP_metis(path: str, graph: StandardGraph):
     with open(path, "w") as f:
         f.write(f"{graph.vertices} {len(undirected_list)}\n")
 
-        for v, neighbors in neighbor_dict.items():
+        for v in range(graph.vertices):
+            neighbors = neighbor_dict[v]
             f.write(" ".join(str(u + 1) for u in neighbors) + "\n")
 
 def export_KaLP_metis_with_universal_nodes(path: str, graph: StandardGraph):
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     
     path, stdout = run_KaLP_with_start_and_target(
         "test.graph", 0, 19,
-        threads=4
+        threads=8
     )
     # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
     #     1422, 1462,
