@@ -145,8 +145,6 @@ def run_KaLP_with_start_and_target(
     if partition_configuration != None:
         command.append(f"--partition_configuration={partition_configuration}")
 
-    print(command)
-
     result = subprocess.run(
         command, 
         stdout=subprocess.PIPE, 
