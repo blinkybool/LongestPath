@@ -105,7 +105,7 @@ def export_KaLP_metis_with_universal_nodes(path: str, graph: StandardGraph):
 
 def check_KaLP_metis(
     path: str, 
-    kalp_graphchecker_path = (dotenv_values(".env")["KALP_PATH_TEST"] + "/graphchecker")
+    kalp_graphchecker_path = (dotenv_values(".env")["KALP_PATH"] + "/graphchecker")
     ):
     result = subprocess.run(
         [kalp_graphchecker_path, path], 
@@ -121,7 +121,7 @@ def run_KaLP_with_start_and_target(
         threads=None,
         steps=None,
         partition_configuration=None,
-        kalp_path = (dotenv_values(".env")["KALP_PATH_TEST"] + "/kalp")
+        kalp_path = (dotenv_values(".env")["KALP_PATH"] + "/kalp")
     ):
     """
     Runs KaLP on the file specified by `path`. 
