@@ -20,7 +20,7 @@ def gen_erdos_reyni_directed(num_vertices: int, p:float) -> StandardGraph:
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
 
 def gen_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
-	p = average_degree / num_vertices
+	p = min(1, average_degree / num_vertices)
 	return gen_erdos_reyni_directed(num_vertices, p)
 
 
@@ -37,6 +37,16 @@ def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int
 	for v in range(path_length):
 		max_nodes = min(v + 1, path_length - v)
 		G = gen_erdos_reyni_directed(node_count(max_nodes), p = p)
+		result.wedge(G, v, 0)
+	
+	return result
+
+def gen_planted_path_with_average_degree(path_length: int, average_degree, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+	result = linear_graph(path_length)
+
+	for v in range(path_length):
+		max_nodes = min(v + 1, path_length - v)
+		G = gen_average_degree_directed(node_count(max_nodes), average_degree=average_degree)
 		result.wedge(G, v, 0)
 	
 	return result
@@ -106,6 +116,24 @@ class ExpandableGraph:
 			max_bubble_path_edge_length = self.least_expansion_distance(v)
 			max_bubble_size = max_bubble_path_edge_length + 1
 			G = gen_erdos_reyni_directed(node_count(max_bubble_size), p = p)
+			result.wedge(G, v, 0)
+
+		return result
+	
+	def expand_with_average_degree(self, average_degree, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+		"""
+		Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
+
+		Args:
+			p: The probability used in Erdos-Reyni to generate bubbles.
+			node_count: Should return the size of a bubble given the upper bound. This can be any non-order-increasing procedure.
+		"""
+		result = self.graph.clone()
+
+		for v in range(self.graph.vertices):
+			max_bubble_path_edge_length = self.least_expansion_distance(v)
+			max_bubble_size = max_bubble_path_edge_length + 1
+			G = gen_average_degree_directed(node_count(max_bubble_size), average_degree=average_degree)
 			result.wedge(G, v, 0)
 
 		return result
