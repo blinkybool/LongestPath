@@ -13,10 +13,12 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	enum { BRUTE_FORCE, DFBNB } mode = BRUTE_FORCE;
+	enum { BRUTE_FORCE, DFBNB, SMART_FORCE } mode = BRUTE_FORCE;
 
 	if (strcmp(argv[1], "DFBNB") == 0) {
 		mode = DFBNB;
+	} else if (strcmp(argv[1], "SMART_FORCE") == 0) {
+		mode = SMART_FORCE;
 	} else if (strcmp(argv[1], "BRUTE_FORCE") != 0) {
 		fprintf(stderr, "Unrecognised search mode %s.\nUsage: ./lpath BRUTE_FORCE | DFBNB\n", argv[1]);
 		exit(EXIT_FAILURE);
@@ -30,6 +32,7 @@ int main(int argc, char **argv) {
 
 	switch (mode) {
 		case BRUTE_FORCE: printf("Search mode: BRUTE_FORCE\n"); break;
+		case SMART_FORCE: printf("Search mode: SMART_FORCE\n"); break;
 		case DFBNB: printf("Search mode: DFBNB\n"); break;
 		default:
 			fprintf(stderr, "bad switch");
@@ -41,6 +44,7 @@ int main(int argc, char **argv) {
 	tick = clock();
 	switch (mode) {
 		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, true); break;
+		case SMART_FORCE: longest_path_smart_force(best_path, graph); break;
 		case DFBNB: longest_path_DFBnB(best_path, graph); break;
 		default:
 			fprintf(stderr, "bad switch");

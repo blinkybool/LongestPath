@@ -47,3 +47,5 @@ NeighboursGraph *read_graph(bool undirected);
 void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian);
 
 void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph);
+
+void longest_path_smart_force(VertArray *best_path, NeighboursGraph *graph);

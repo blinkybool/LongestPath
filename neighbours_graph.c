@@ -122,8 +122,8 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 	int *branch_indices = malloc(sizeof(int) * (v-1));
 
 	// Lookup table for checking if 
-	bool *path_set = malloc(sizeof(bool) * v);
-	memset(path_set, false, sizeof(bool) * v);
+	int *path_set = malloc(sizeof(int) * v);
+	memset(path_set, 0, sizeof(int) * v);
 	
 	int len = 1;
 	int vertex = 0;
@@ -166,9 +166,9 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 			
 			// Search from new start vertex
 			if (len == 1) {
-				path_set[vertex] = false;
+				path_set[vertex] = 0;
 				vertex++;
-				path_set[vertex] = true;
+				path_set[vertex] = 1;
 				path[0] = vertex;
 				backtrack = false;
 				branch_index = 0;
@@ -179,7 +179,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 			// Rewind state to previous vertex with new branch_index
 			vertex = path[len-2];
 			branch_index = branch_indices[len-2]+1;
-			path_set[path[len-1]] = false;
+			path_set[path[len-1]] = 0;
 			len--;
 		}
 	}
@@ -191,13 +191,13 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 
 typedef struct {
 	VertArray stack;
-	bool *ignore_set;
+	int *ignore_set;
 } DFS_State;
 
 DFS_State *new_DFS_State(int vertices) {
-	DFS_State *state = malloc(sizeof(DFS_State));
+	DFS_State *state = (DFS_State *) malloc(sizeof(DFS_State));
 	state->stack.elems = (int *) malloc(vertices * vertices * sizeof(int));
-	state->ignore_set = (bool *) malloc(vertices * sizeof(bool));
+	state->ignore_set = (int *) malloc(vertices * sizeof(int));
 	return state;
 }
 
@@ -208,19 +208,19 @@ void free_DFS_State(DFS_State *state) {
 }
 
 // Pass dfs_state so memory can be re-used instead of allocated every time.
-int subgraph_size_dfs(DFS_State *dfs_state, NeighboursGraph *graph, int start, bool *avoid_vertex_set) {
+int subgraph_size_dfs(DFS_State *dfs_state, NeighboursGraph *graph, int start, int *avoid_vertex_set) {
 	dfs_state->stack.count = 1;
 	dfs_state->stack.elems[0] = start;
 
 	int visited = 0;
-	memcpy(dfs_state->ignore_set, avoid_vertex_set, graph->vertices * sizeof(bool));
+	memcpy(dfs_state->ignore_set, avoid_vertex_set, graph->vertices * sizeof(int));
 	while (dfs_state->stack.count > 0) {
 		int vertex = dfs_state->stack.elems[--dfs_state->stack.count];
 		if (!dfs_state->ignore_set[vertex]) {
 			// Extend the stack with the neighbours of vertex
 			memcpy(dfs_state->stack.elems + dfs_state->stack.count, graph->adj[vertex].elems, graph->adj[vertex].count * sizeof(int));
 			dfs_state->stack.count += graph->adj[vertex].count;
-			dfs_state->ignore_set[vertex] = true;
+			dfs_state->ignore_set[vertex] = 1;
 			visited++;
 		}
 	}
@@ -240,8 +240,8 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 	int *branch_indices = malloc(sizeof(int) * (v-1));
 
 	// Lookup table for vertices belonging to path
-	bool *path_set = malloc(sizeof(bool) * v);
-	memset(path_set, false, sizeof(bool) * v);
+	int *path_set = malloc(sizeof(int) * v);
+	memset(path_set, 0, sizeof(int) * v);
 	
 	int len = 1;
 	int vertex = 0;
@@ -292,9 +292,9 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 			
 			// Search from new start vertex
 			if (len == 1) {
-				path_set[vertex] = false;
+				path_set[vertex] = 0;
 				vertex++;
-				path_set[vertex] = true;
+				path_set[vertex] = 1;
 				path[0] = vertex;
 				backtrack = false;
 				branch_index = 0;
@@ -305,12 +305,165 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 			// Rewind state to previous vertex with new branch_index
 			vertex = path[len-2];
 			branch_index = branch_indices[len-2]+1;
-			path_set[path[len-1]] = false;
+			path_set[path[len-1]] = 0;
 			len--;
 		}
 	}
 
 	free_DFS_State(heuristic_dfs_state);
+	free(path);
+	free(branch_indices);
+	free(path_set);
+}
+
+int compare_in_degree(void *in_degrees, const void *a, const void *b) {
+	return ((int *) in_degrees)[*(int *)b] - ((int *) in_degrees)[*(int *)a];
+}
+
+void sort_vertices_by_in_degree(NeighboursGraph *graph, int *sorted_vertices) {
+	int num_vertices = graph->vertices;
+
+	int *in_degrees = malloc(sizeof(int) * num_vertices);
+
+	for (int i = 0; i < num_vertices; ++i) {
+		in_degrees[i] = 0;
+	}
+
+	// Iterate over every edge. Whenever an edge i->j is found, increment j's in-degree
+	for (int i = 0; i < num_vertices; ++i) {
+		int *adj_vertices = graph->adj[i].elems;
+		int d = graph->adj[i].count;
+		for (int j = 0; j < d; j++) {
+			int neighbor = adj_vertices[j];
+			++in_degrees[neighbor];
+		}
+	}
+
+	for (int i = 0; i < num_vertices; ++i) {
+		sorted_vertices[i] = i;
+	}
+
+	qsort_r(sorted_vertices, num_vertices, sizeof(int), in_degrees, compare_in_degree);
+
+	// Free the dynamically allocated memory
+	free(in_degrees);
+}
+
+void longest_path_smart_force(VertArray *longest_path, NeighboursGraph *graph) {
+	int num_vertices = graph->vertices;
+
+	// The current path which we are building and backtracking
+	int *path = malloc(sizeof(int) * num_vertices);
+	// The index of the edge chosen to get to path[i+1] from path[i]
+	// When we backtrack, we continue search from the next index.
+	int *branch_indices = malloc(sizeof(int) * (num_vertices-1));
+	
+	// The number of vertices in the current path array
+	int len;
+	// The vertex at the end of the current path
+	int vertex;
+	// The index of the first edge out of `vertex` to try in the next loop
+	// Also equals the number of edges out of `vertex` we've already tried.
+	int branch_index;
+	// Flag to trigger backtracking logic in the loop
+	bool backtrack;
+
+	// Lookup table for vertices belonging to path
+	int *path_set = malloc(sizeof(int) * num_vertices);
+	memset(path_set, 0, sizeof(int) * num_vertices);
+
+	// If k = upperbound_from[i] then either k is either -1 (no upper bound known)
+	// or every path starting from vertex i is known to have length at most k.
+	int *upperbound_from = malloc(sizeof(int) * num_vertices);
+	memset(upperbound_from, -1, sizeof(int) * num_vertices);
+
+	// We update longest_path whenever a longer path is found
+	longest_path->count = 0;
+
+	int *sorted_vertices = malloc(sizeof(int) * num_vertices);
+	sort_vertices_by_in_degree(graph, sorted_vertices);
+
+	// The current upper bound on paths starting from path[0]
+	// This gets added to the upperbound_from table when path[0] changes
+	int current_bound = 1;
+	int sorted_index = 0;
+	vertex = sorted_vertices[0];
+	len = 1;
+	path[0] = vertex;
+	path_set[vertex] = true;
+
+	// Each loop, either try to extend the path, or backtrack to try the next
+	// edge out of the previous vertex.
+	while (sorted_index < num_vertices) {
+
+		backtrack = true;
+
+		for (int i=branch_index; i<graph->adj[vertex].count; i++) {
+			int next_vertex = graph->adj[vertex].elems[i];
+			if (!path_set[next_vertex]) {
+
+				// If we know an upper bound on paths starting from next_vertex, we obtain an upper bound
+				// on the longest path continuing this current path through it.
+				if (longest_path->count > 0 && upperbound_from[next_vertex] > 0 && len + upperbound_from[next_vertex] <= longest_path->count) {
+
+					// Update the bound on paths starting from path[0]
+					if (upperbound_from[next_vertex] + len > current_bound) {
+						current_bound = upperbound_from[next_vertex] + len;
+					}
+					// Yay! We pruned this branch of the search
+					continue;
+				}
+
+				// Extend path and update relevant state
+				path[len] = next_vertex;
+				branch_indices[len-1] = i;
+				len++;
+				path_set[next_vertex] = true;
+				vertex=next_vertex;
+				// Repeat this for-loop instead of backtracking
+				backtrack = false;
+				branch_index = 0;
+				break;
+			}
+		}
+
+		if (backtrack) {
+			// Found better path
+			if (len > longest_path->count) {
+				memcpy(longest_path->elems, path, sizeof(int)*len);
+				longest_path->count = len;
+				// printf("path from:%d to:%d len:%d\n", path[0], path[len-1], len);
+				if (len == num_vertices) break;
+			}
+			if (len > current_bound) {
+				current_bound = len;
+			}
+			
+			// Search from new start vertex
+			if (len == 1) {
+				upperbound_from[path[0]] = current_bound;
+				path_set[vertex] = 0;
+
+				++sorted_index;
+				vertex = sorted_vertices[sorted_index];
+
+				path_set[vertex] = 1;
+				path[0] = vertex;
+				backtrack = false;
+				branch_index = 0;
+				continue;
+			}
+
+			// Rewind state to previous vertex with new branch_index
+			vertex = path[len-2];
+			branch_index = branch_indices[len-2]+1;
+			path_set[path[len-1]] = 0;
+			len--;
+		}
+	}
+
+	free(sorted_vertices);
+	free(upperbound_from);
 	free(path);
 	free(branch_indices);
 	free(path_set);
