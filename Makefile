@@ -2,7 +2,7 @@
 # https://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/
 
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I. -Wall
 DEPS = neighbours_graph.h
 OBJ = main.o neighbours_graph.o
 
