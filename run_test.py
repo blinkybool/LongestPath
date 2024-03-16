@@ -10,7 +10,7 @@ class Method(Enum):
 	BRUTE_FORCE = 1
 	DFBNB = 2
 
-def run_test(graph: StandardGraph, method: Method) -> float:
+def run_test(graph: StandardGraph, method: Method, stop_at_hamiltonian: bool) -> float:
 	p = run(['./lpath', method.name], stdout=PIPE, input=str(graph), encoding='ascii')
 
 	print(p.stdout)
