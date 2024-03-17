@@ -1,4 +1,4 @@
-from gen import StandardGraph, linear_graph, complete_graph
+from .gen import StandardGraph, linear_graph, complete_graph
 from neighbors_graph import *
 import unittest
 import random

@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-from gen import StandardGraph
+from ..gen import StandardGraph
 from subprocess import run, PIPE
 import re
 from enum import Enum
-
-# TODO Test suite for graph generation, algorithm run-time testing, and plotting results with matplotlib
+import pathlib
+brute_path = pathlib.Path(__file__).parent.joinpath("brute")
 
 class Method(Enum):
 	BRUTE_FORCE = 1
 	DFBNB = 2
+	SMART_FORCE = 3
 
-def run_test(graph: StandardGraph, method: Method, stop_at_hamiltonian: bool) -> float:
-	p = run(['./lpath', method.name], stdout=PIPE, input=str(graph), encoding='ascii')
+def solve(graph: StandardGraph, method: Method):
 
-	print(p.stdout)
+	if not brute_path.exists():
+		raise RuntimeError("No brute executable found. Run `make`")
+
+	p = run([brute_path, method.name], stdout=PIPE, input=str(graph), encoding='ascii')
 
 	if p.returncode != 0:
 		print("result")

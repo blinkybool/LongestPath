@@ -3,7 +3,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt 
 from dataclasses import dataclass
-from gen import *
+from .gen import *
 from typing import List, Tuple, Callable
 
 @dataclass

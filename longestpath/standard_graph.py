@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Callable
-from neighbors_graph import NeighborsGraph
+from .neighbors_graph import NeighborsGraph
 import numpy as np
 
 @dataclass

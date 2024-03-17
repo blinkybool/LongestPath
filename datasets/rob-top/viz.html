@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Data Visualization</title>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+  <script src="https://unpkg.com/force-graph"></script>
+</head>
+
+<body>
+  <div id="graph"></div>
+  <script>
+
+    fetch('/Users/billy/LongestPath/datasets/rob-top/dual_graph.json').then(res => res.json()).then(data => {
+      const Graph = ForceGraph()
+      (document.getElementById('graph'))
+        .graphData(data)
+        .nodeLabel('id')
+        .nodeAutoColorBy('group')
+        // .nodeColor(node => node.group == 1 ? "red" : "gray")
+        .nodeVal(node => node.group == 1 ? 4 : 1)
+        // .linkDirectionalParticleWidth(5)
+        .linkWidth(d => d.value == 1 ? 3 : 1)
+        // .linkOpacity(0.5)
+        .linkLabel("title")
+        .linkAutoColorBy('value')
+        // .linkColor(link => link.value == 1 ? 'blue' : 'gray')
+        // .linkDirectionalParticles(link => link.value * 4)
+        // .linkDirectionalParticleWidth(8)
+        // .linkDirectionalParticleColor("black")
+        // .linkDirectionalParticleSpeed(link => link.value * 0.005)
+        .linkDirectionalArrowLength(10)
+        .linkDirectionalArrowRelPos(1)
+        .onNodeDragEnd(node => {
+          node.fx = node.x;
+          node.fy = node.y;
+        })
+        
+
+      const linkForce = Graph
+        .d3Force('link')
+        .distance(link => link.value == 1 ? 1000 : 1)
+    });
+  </script>
+</body>
+
+</html>

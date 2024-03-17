@@ -1,5 +1,6 @@
 **/*.o
 lpath
+longestpath/brute/brute
 
 venv/
 __pycache__

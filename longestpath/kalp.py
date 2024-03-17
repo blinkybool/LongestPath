@@ -1,7 +1,7 @@
-from standard_graph import StandardGraph, linear_graph
+from .standard_graph import StandardGraph, linear_graph
 import os
 import subprocess
-from gen import gen_planted_path, gen_erdos_reyni_directed
+from .gen import gen_planted_path, gen_erdos_reyni_directed
 import random
 import numpy as np
 from dotenv import dotenv_values
