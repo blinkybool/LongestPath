@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	bool directed = true;
 	FILE *prog = NULL;
 	bool close_prog = false;
-	enum { UNSET, BRUTE_FORCE, BNB, FAST_BOUND, BRUTE_FORCE_COMPLETE } method = UNSET;
+	enum { UNSET, BRUTE_FORCE, BRANCH_N_BOUND, FAST_BOUND, BRUTE_FORCE_COMPLETE } method = UNSET;
 
 	opterr = 0; //if (opterr != 0) (which it is by default), getopt() prints its own error messages for invalid options and for missing option arguments.
 	while ((c = getopt (argc, argv, "m:up:")) != -1)
@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
 			case 'm':
 				if (strcmp(optarg, "BRUTE_FORCE") == 0) {
 					method = BRUTE_FORCE;
-				} else if (strcmp(optarg, "BNB") == 0) {
-					method = BNB;
+				} else if (strcmp(optarg, "BRANCH_N_BOUND") == 0) {
+					method = BRANCH_N_BOUND;
 				} else if (strcmp(optarg, "FAST_BOUND") == 0) {
 					method = FAST_BOUND;
 				} else if (strcmp(optarg, "BRUTE_FORCE_COMPLETE") == 0) {
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 
 	switch (method) {
 		case BRUTE_FORCE: printf("Search method: brute force\n"); break;
-		case BNB: printf("Search method: branch and bound\n"); break;
+		case BRANCH_N_BOUND: printf("Search method: branch and bound\n"); break;
 		case FAST_BOUND: printf("Search method: fast bound\n"); break;
 		case BRUTE_FORCE_COMPLETE: printf("Search method: brute force (complete)\n"); break;
 		default:
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 	tick = clock();
 	switch (method) {
 		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, true, prog); break;
-		case BNB: longest_path_branch_and_bound(best_path, graph, prog); break;
+		case BRANCH_N_BOUND: longest_path_branch_and_bound(best_path, graph, prog); break;
 		case FAST_BOUND: longest_path_fast_bound(best_path, graph, prog); break;
 		case BRUTE_FORCE_COMPLETE: longest_path_brute_force(best_path, graph, false, prog); break;
 		default:

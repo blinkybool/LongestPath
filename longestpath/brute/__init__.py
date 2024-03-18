@@ -10,10 +10,14 @@ class Method(Enum):
 	BRUTE_FORCE = 1
 	BRANCH_N_BOUND = 2
 	FAST_BOUND = 3
+	BRUTE_FORCE_COMPLETE = 4
 
 SolveResult = TypedDict('SolveResult', {'path': List[int], 'run_time': float})
 
-def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = None) -> SolveResult:
+def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = None, timeout: float = None) -> SolveResult:
+	'''
+	Throws TimeoutError if timeout is exceeded
+	'''
 
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
@@ -24,8 +28,7 @@ def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = No
 		args.append("-p")
 		args.append(progressfile)
 
-	print(args)
-	process = subprocess.run(args, executable=brute_path, input=str(graph), stdout=subprocess.PIPE, text=True)
+	process = subprocess.run(args, executable=brute_path, input=str(graph), stdout=subprocess.PIPE, text=True, timeout=timeout)
 
 	if process.returncode != 0:
 		print(process.stderr)
