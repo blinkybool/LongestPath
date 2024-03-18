@@ -44,8 +44,8 @@ bool verify_path(VertArray *path, NeighboursGraph *graph);
 
 NeighboursGraph *read_graph(bool undirected);
 
-void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian);
+void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian, FILE *prog);
 
-void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph);
+void longest_path_branch_and_bound(VertArray *best_path, NeighboursGraph *graph, FILE *prog);
 
-void longest_path_smart_force(VertArray *best_path, NeighboursGraph *graph);
+void longest_path_fast_bound(VertArray *best_path, NeighboursGraph *graph, FILE *prog);

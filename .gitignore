@@ -13,3 +13,5 @@ envs/
 .env
 
 .python-version
+.conda/
+*.log

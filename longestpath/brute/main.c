@@ -4,36 +4,76 @@
 #include <time.h>
 #include "neighbours_graph.h"
 #include <unistd.h>
+#include <ctype.h>
 
+#define USAGE "Usage: brute -m <method>\n"
 
 int main(int argc, char **argv) {
 
-	if (argc != 2) {
-		fprintf(stderr, "Exactly one argument expected.\nUsage: ./lpath BRUTE_FORCE | DFBNB\n");
+	int c;
+	bool directed = true;
+	FILE *prog = NULL;
+	bool close_prog = false;
+	enum { UNSET, BRUTE_FORCE, BNB, FAST_BOUND, BRUTE_FORCE_COMPLETE } method = UNSET;
+
+	opterr = 0; //if (opterr != 0) (which it is by default), getopt() prints its own error messages for invalid options and for missing option arguments.
+	while ((c = getopt (argc, argv, "m:up:")) != -1)
+		switch (c) {
+			case 'm':
+				if (strcmp(optarg, "BRUTE_FORCE") == 0) {
+					method = BRUTE_FORCE;
+				} else if (strcmp(optarg, "BNB") == 0) {
+					method = BNB;
+				} else if (strcmp(optarg, "FAST_BOUND") == 0) {
+					method = FAST_BOUND;
+				} else if (strcmp(optarg, "BRUTE_FORCE_COMPLETE") == 0) {
+					method = BRUTE_FORCE_COMPLETE;
+				} else {
+					fprintf(stderr, "Unrecognised search method %s.\n\n", optarg);
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case 'u':
+				directed = false;
+				break;
+			case 'p':
+				printf("using: %s\n", optarg);
+				prog = fopen(optarg, "w");
+				close_prog = true;
+				break;
+			case '?':
+				if (optopt == 'm')
+					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+				else if(optopt == 'p' && isprint(optopt)) {
+					printf("using stdout\n");
+					prog = stdout;
+					break;
+				}
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+				return 1;
+			default:
+				abort ();
+		}
+
+	if (method == UNSET) {
+		fprintf (stderr, "No method provided.\n%s", USAGE);
 		exit(EXIT_FAILURE);
 	}
 
-	enum { BRUTE_FORCE, DFBNB, SMART_FORCE } mode = BRUTE_FORCE;
-
-	if (strcmp(argv[1], "DFBNB") == 0) {
-		mode = DFBNB;
-	} else if (strcmp(argv[1], "SMART_FORCE") == 0) {
-		mode = SMART_FORCE;
-	} else if (strcmp(argv[1], "BRUTE_FORCE") != 0) {
-		fprintf(stderr, "Unrecognised search mode %s.\nUsage: ./lpath BRUTE_FORCE | DFBNB\n", argv[1]);
-		exit(EXIT_FAILURE);
-	}
-
-	NeighboursGraph *graph = read_graph(false);
+	NeighboursGraph *graph = read_graph(!directed);
 
 	VertArray *best_path = malloc(sizeof(VertArray));
 	best_path->count = 0;
 	best_path->elems = malloc(sizeof(int) * graph->vertices);
 
-	switch (mode) {
-		case BRUTE_FORCE: printf("Search mode: BRUTE_FORCE\n"); break;
-		case SMART_FORCE: printf("Search mode: SMART_FORCE\n"); break;
-		case DFBNB: printf("Search mode: DFBNB\n"); break;
+	switch (method) {
+		case BRUTE_FORCE: printf("Search method: brute force\n"); break;
+		case BNB: printf("Search method: branch and bound\n"); break;
+		case FAST_BOUND: printf("Search method: fast bound\n"); break;
+		case BRUTE_FORCE_COMPLETE: printf("Search method: brute force (complete)\n"); break;
 		default:
 			fprintf(stderr, "bad switch");
 			exit(EXIT_FAILURE);
@@ -42,32 +82,34 @@ int main(int argc, char **argv) {
 	clock_t tick, tock;
 	
 	tick = clock();
-	switch (mode) {
-		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, true); break;
-		case SMART_FORCE: longest_path_smart_force(best_path, graph); break;
-		case DFBNB: longest_path_DFBnB(best_path, graph); break;
+	switch (method) {
+		case BRUTE_FORCE: longest_path_brute_force(best_path, graph, true, prog); break;
+		case BNB: longest_path_branch_and_bound(best_path, graph, prog); break;
+		case FAST_BOUND: longest_path_fast_bound(best_path, graph, prog); break;
+		case BRUTE_FORCE_COMPLETE: longest_path_brute_force(best_path, graph, false, prog); break;
 		default:
 			fprintf(stderr, "bad switch");
 			exit(EXIT_FAILURE);
 	}
 	tock = clock();
-
 	double elapsed = (double) (tock - tick) / CLOCKS_PER_SEC;
+
+	if (close_prog) fclose(prog);
 
 	if (!verify_path(best_path, graph)) {
 		fprintf(stderr, "FAIL: Path is invalid.\n");
 		exit(1);
 	}
 
-	printf("Longest path length: %d\n", best_path->count-1);
+	printf("length: %d\n", best_path->count-1);
 
-	printf("Longest path: ");
+	printf("longest_path:");
 	FOREACH_ARRAY(int, vertex, (*best_path), {
-		printf("%d ", vertex);
+		printf(" %d", vertex);
 	});
 	printf("\n");
 
-	printf("Time: %fs\n", elapsed);
+	printf("time: %f\n", elapsed);
 
 	free(best_path->elems);
 	free(best_path);

@@ -104,16 +104,28 @@ NeighboursGraph *read_graph(bool undirected) {
 		}
 	}
 
-	printf("Read graph. vertices: %d, edges: %d\n", vertices, edges);
-
+	printf("Read graph.\n");
+	printf("vertices: %d\n", vertices);
+	printf("edges: %d\n", edges);
+	printf("directed: %s\n", undirected ? "true" : "false");
 	return graph;
+}
+
+inline void log_found_path(FILE *prog, VertArray *path) {
+	fprintf(prog, "LOG: Found path %d -> %d (length %d)\n", path->elems[0], path->elems[1], path->count-1);
+	fprintf(prog, "path:");
+	FOREACH_ARRAY(int, vertex, (*path), {
+		fprintf(prog, " %d", vertex);
+	});
+	fprintf(prog, "\n");
+	fflush(prog);
 }
 
 /*
 Perform brute-force depth-first search for the longest path, writing answer
 in best_path. Specify stop_at_max=true to shortcut search at hamiltonian path.
 */
-void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian) {
+void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool stop_at_hamiltonian, FILE *prog) {
 	int v = graph->vertices;
 
 	// The current path (so far)
@@ -161,6 +173,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 			if (len > best_path->count) {
 				memcpy(best_path->elems, path, sizeof(int)*len);
 				best_path->count = len;
+				if (prog != NULL) log_found_path(prog, best_path);
 				if (stop_at_hamiltonian && (len == v)) break;
 			}
 			
@@ -228,7 +241,7 @@ int subgraph_size_dfs(DFS_State *dfs_state, NeighboursGraph *graph, int start, i
 	return visited;
 }
 
-void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
+void longest_path_branch_and_bound(VertArray *best_path, NeighboursGraph *graph, FILE *prog) {
 	int v = graph->vertices;
 
 	best_path->count = 0;
@@ -287,6 +300,7 @@ void longest_path_DFBnB(VertArray *best_path, NeighboursGraph *graph) {
 			if (len > best_path->count) {
 				memcpy(best_path->elems, path, sizeof(int)*len);
 				best_path->count = len;
+				if (prog != NULL) log_found_path(prog, best_path);
 				if (len == v) break;
 			}
 			
@@ -349,7 +363,7 @@ void sort_vertices_by_in_degree(NeighboursGraph *graph, int *sorted_vertices) {
 	free(in_degrees);
 }
 
-void longest_path_smart_force(VertArray *longest_path, NeighboursGraph *graph) {
+void longest_path_fast_bound(VertArray *longest_path, NeighboursGraph *graph, FILE *prog) {
 	int num_vertices = graph->vertices;
 
 	// The current path which we are building and backtracking
@@ -380,6 +394,8 @@ void longest_path_smart_force(VertArray *longest_path, NeighboursGraph *graph) {
 	// We update longest_path whenever a longer path is found
 	longest_path->count = 0;
 
+	// Vertices with higher in-degree are (in theory) encountered more often
+	// So we get higher bound re-use if we solve those first
 	int *sorted_vertices = malloc(sizeof(int) * num_vertices);
 	sort_vertices_by_in_degree(graph, sorted_vertices);
 
@@ -432,7 +448,7 @@ void longest_path_smart_force(VertArray *longest_path, NeighboursGraph *graph) {
 			if (len > longest_path->count) {
 				memcpy(longest_path->elems, path, sizeof(int)*len);
 				longest_path->count = len;
-				// printf("path from:%d to:%d len:%d\n", path[0], path[len-1], len);
+				if (prog != NULL) log_found_path(prog, longest_path);
 				if (len == num_vertices) break;
 			}
 			if (len > current_bound) {
