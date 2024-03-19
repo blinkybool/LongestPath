@@ -7,43 +7,8 @@ from longestpath import (
 	StandardGraph,
 	gen_num_edges,
 	gen_average_degree_directed,
-	gen_erdos_reyni_directed,
-	brute)
-
-@dataclass
-class Solver():
-	function_dict = {
-		"brute": brute.solve
-	}
-	name: str
-	args: List[Any]
-	kwargs: Dict[str, Any]
-
-	def __init__(self, name, *args, **kwargs):
-		assert name in Solver.function_dict, "Unknown solver name"
-		self.name = name
-		self.args = args
-		self.kwargs = kwargs
-
-	def run(self, graph, timeout):
-		print(self)
-		return Solver.function_dict[self.name](graph, timeout, *self.args, **self.kwargs)
-
-	def serialise(self):
-		return {
-			"name": self.name,
-			"args": self.args,
-			"kwargs": self.kwargs,
-		}
-
-	@classmethod
-	def deserialise(cls, json):
-		return Solver(json["name"], *json["args"], **json["kwargs"])
-
-	def __str__(self):
-		args = [i.__repr__() for i in self.args]
-		kwargs = [f"{key}={val.__repr__()}" for key, val in self.kwargs.items()]
-		return f"{self.name}({', '.join(args + kwargs)})"
+	gen_erdos_reyni_directed)
+from longestpath.solvers import Solver
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -209,7 +174,7 @@ class RandomBenchmark:
 					if not ("failure" in existing and retryFailures):
 						continue
 
-				print(solver.name, graph_id)
+				print(solver, graph_id)
 				try:
 					result = solver.run(graph, timeout)
 					assert("run_time" in result)

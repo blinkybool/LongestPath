@@ -6,6 +6,7 @@ import random
 import numpy as np
 from dotenv import dotenv_values
 import re
+from .solveresult import SolveResult
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -211,28 +212,46 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
 
     return longest_path
 
+
+def solve_KaLP(graph: StandardGraph, timeout: float | None = None, *args, **kwargs) -> SolveResult:
+    export_KaLP_metis("kalp_files/temp.graph", graph)
+    result = check_KaLP_metis("kalp_files/temp.graph")
+
+    if re.search("The graph format seems correct", result) == None:
+        print(result)
+        raise RuntimeError("Incorrect graph format detected by KaLP")
+
+    path = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
+
+    # TODO: Implement timeout and timing!
+
+    return {"path": path, "run_time": 0}
+
+
 if __name__ == "__main__":
     random.seed(0)
     np.random.seed(0)
-    G = gen_planted_path(20, 0)
+    G = gen_planted_path(10, 0.5)
 
-    # export_KaLP_metis("test.graph", G)
-    export_KaLP_metis_with_universal_nodes("test.graph", G)
-    print(check_KaLP_metis("test.graph"))
+    # # export_KaLP_metis("test.graph", G)
+    # export_KaLP_metis_with_universal_nodes("test.graph", G)
+    # print(check_KaLP_metis("test.graph"))
 
-    # export_KaLP_dimacs_with_universal_nodes("test.dimacs", G)
-    # export_KaLP_dimacs("test.dimacs", G)
-    # print(check_KaLP_dimacs_format("test.dimacs")[0])
+    # # export_KaLP_dimacs_with_universal_nodes("test.dimacs", G)
+    # # export_KaLP_dimacs("test.dimacs", G)
+    # # print(check_KaLP_dimacs_format("test.dimacs")[0])
     
-    path, stdout = run_KaLP_with_start_and_target(
-        "test.graph", 0, 19,
-        threads=8
-    )
-    # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
-    #     1422, 1462,
-    #     threads=4, 
-    #     partition_configuration="fast"
+    # path, stdout = run_KaLP_with_start_and_target(
+    #     "test.graph", 0, 19,
+    #     threads=8
     # )
+    # # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
+    # #     1422, 1462,
+    # #     threads=4, 
+    # #     partition_configuration="fast"
+    # # )
 
-    print(stdout)
-    print(path)
+    # print(stdout)
+    # print(path)
+
+    print(solve_KaLP(G))

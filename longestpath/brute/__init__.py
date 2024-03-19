@@ -4,6 +4,8 @@ import subprocess
 from enum import Enum
 from typing import TypedDict, List, Optional
 import pathlib
+from ..solveresult import SolveResult
+
 brute_path = pathlib.Path(__file__).parent.joinpath("brute")
 
 class Method(str, Enum):
@@ -11,8 +13,6 @@ class Method(str, Enum):
 	BRANCH_N_BOUND = "BRANCH_N_BOUND"
 	FAST_BOUND = "FAST_BOUND"
 	BRUTE_FORCE_COMPLETE = "BRUTE_FORCE_COMPLETE"
-
-SolveResult = TypedDict('SolveResult', {'path': List[int], 'run_time': float})
 
 def solve(graph: StandardGraph, timeout: float, method: str, progressfile: Optional[str] = None) -> SolveResult:
 	'''
