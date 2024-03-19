@@ -40,10 +40,10 @@ class Solver():
 	def deserialise(cls, json):
 		return Solver(json["name"], *json["args"], **json["kwargs"])
 
-	def __repr__(self):
+	def __str__(self):
 		args = [i.__repr__() for i in self.args]
 		kwargs = [f"{key}={val.__repr__()}" for key, val in self.kwargs.items()]
-		return f"{self.__class__.__name__}[{self.name}({', '.join(args + kwargs)})]"
+		return f"{self.name}({', '.join(args + kwargs)})"
 
 class RandomParams(NamedTuple):
 	directed: bool
