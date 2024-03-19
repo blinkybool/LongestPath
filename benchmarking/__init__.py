@@ -1,4 +1,4 @@
-import os, json
+import os, json, pathlib
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, TypedDict, Optional, NamedTuple, Dict
@@ -32,6 +32,9 @@ class RandomParams(NamedTuple):
 	p: Optional[float] = None
 
 	def serialise(self):
+		'''
+		To deserialise d = params.serialise(), do RandomParams(**d)
+		'''
 		return {k:v for k,v in self._asdict().items() if v is not None}
 
 Result = TypedDict('Result',
@@ -42,68 +45,117 @@ Result = TypedDict('Result',
 	method=str,
 	failure=Optional[str])
 
-class RandomBenchmark:
-
-	def __init__(self,
+def new_random_benchmark(
 		params_list: List[RandomParams],
 		methods: List[Method],
 		override_benchmark_path: str | None = None) -> None:
 
-		self.params_list = params_list
-		self.methods = methods
-		self.override_benchmark_path = override_benchmark_path
+	
+	if override_benchmark_path:
+		benchmark_path = override_benchmark_path
+	else:
+		if not os.path.exists("./benchmarks"):
+			os.mkdir("./benchmarks")
+		if not os.path.isdir("./benchmarks"):
+			raise RuntimeError("Failed to make ./benchmarks folder")
 		
-		if override_benchmark_path:
-			self.benchmark_path = override_benchmark_path
+		datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
+		benchmark_path = os.path.join("./benchmarks", f"random-{datetime_str}")
+
+	graphs_path = os.path.join(benchmark_path, "graphs")
+	
+	if os.path.exists(benchmark_path):
+		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
+
+	graphs = []
+
+	for i, params in enumerate(params_list):
+		graph_id = str(i)
+		if not params.directed:
+			# Unclear what the undirected graph format is.
+			raise RuntimeError("Undirected graphs not properly handled")
+
+		graph: StandardGraph
+		if params.num_edges:
+			graph = gen_num_edges(params.num_vertices, params.num_edges)
+		elif params.p:
+			graph = gen_erdos_reyni_directed(params.num_vertices, params.p)
+		elif params.average_degree:
+			graph = gen_average_degree_directed(params.num_vertices, params.average_degree)
 		else:
-			if not os.path.exists("./benchmarks"):
-				os.mkdir("./benchmarks")
-			if not os.path.isdir("./benchmarks"):
-				raise RuntimeError("Failed to make ./benchmarks folder")
-			
-			datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
-			self.benchmark_path = os.path.join("./benchmarks", f"random-{datetime_str}")
+			raise RuntimeError(f"Invalid params: {params}")
 
-		self.graphs_path = os.path.join(self.benchmark_path, "graphs")
+		graphs.append((graph_id, graph))
+
+	os.mkdir(benchmark_path)
+	os.mkdir(graphs_path)
+
+	for graph_id, graph in graphs:
+		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
+			graph_file.write(str(graph))
 		
-		if os.path.exists(self.benchmark_path):
-			raise FileExistsError(f"Benchmark already exists: {str(self.benchmark_path)}")
+	info_path = os.path.join(benchmark_path, "info.json")
+	with open(info_path, "w") as info_file:
+		json.dump({
+			"type": "random",
+			"params_list": [params.serialise() for params in params_list],
+			"methods": methods,
+			"graph_ids": [graph_id for graph_id, graph in graphs]
+		}, info_file, indent=2)
 
-		self.graphs: List[(str, StandardGraph)] = []
+	return RandomBenchmark(benchmark_path, graphs_path, info_path)
 
-		for i, params in enumerate(params_list):
-			graph_id = str(i)
-			if not params.directed:
-				# Unclear what the undirected graph format is.
-				raise RuntimeError("Undirected graphs not properly handled")
+class RandomBenchmark:
 
-			graph: StandardGraph
-			if params.num_edges:
-				graph = gen_num_edges(params.num_vertices, params.num_edges)
-			elif params.p:
-				graph = gen_erdos_reyni_directed(params.num_vertices, params.p)
-			elif params.average_degree:
-				graph = gen_average_degree_directed(params.num_vertices, params.average_degree)
-			else:
-				raise RuntimeError(f"Invalid params: {params}")
+	@classmethod
+	def is_benchmark_dir(cls, path: str):
+		return all([
+			os.path.isdir(path),
+			os.path.isdir(os.path.join(path, "graphs")),
+			os.path.isfile(os.path.join(path, "info.json")),
+		])
+	
+	@classmethod
+	def get_valid_benchmark_paths(cls, benchmarks_container: str = "./benchmarks"):
+		return [os.path.join(benchmarks_container, path)
+							for path in os.listdir(benchmarks_container)
+								if cls.is_benchmark_dir(os.path.join(benchmarks_container, path))]
 
-			self.graphs.append((graph_id, graph))
+	@classmethod
+	def load_latest(cls, benchmarks_container: str = "./benchmarks"):
+		benchmark_paths = cls.get_valid_benchmark_paths(benchmarks_container)
+		latest_modified = max(benchmark_paths, key=os.path.getmtime)
+		return cls.load(latest_modified)
 
-		os.mkdir(self.benchmark_path)
-		os.mkdir(self.graphs_path)
+	@classmethod
+	def load(cls, benchmark_path: str):
+		graphs_path = os.path.join(benchmark_path, "graphs")
+		info_path = os.path.join(benchmark_path, "info.json")
+		return cls(benchmark_path, graphs_path, info_path)
 
-		for graph_id, graph in self.graphs:
-			with open(os.path.join(self.graphs_path, f"{graph_id}.txt"), "w") as graph_file:
-				graph_file.write(str(graph))
-			
-		info_path = os.path.join(self.benchmark_path, "info.json")
-		with open(info_path, "w") as info_file:
-			json.dump({
-				"type": "random",
-				"params_list": [params.serialise() for params in params_list],
-				"methods": methods,
-				"graph_ids": list(range(len(self.graphs)))
-			}, info_file, indent=2)
+	def __init__(self,
+		benchmark_path: str,
+		graphs_path: str,
+		info_path: str):
+		'''
+		We always load from file (rather than accepting graphs list directly) to ensure idempotence
+		'''
+
+		self.benchmark_path = benchmark_path
+		self.graphs_path = graphs_path
+		self.info_path = info_path
+
+		with open(self.info_path, "r") as info_file:
+			info = json.load(info_file)
+			self.params_list = [RandomParams(**d) for d in info["params_list"]]
+			self.methods = [Method[method_str] for method_str in info["methods"]]
+			self.graph_ids = info["graph_ids"]
+		
+		self.graphs = []
+		
+		for graph_id in self.graph_ids:
+			with open(os.path.join(self.graphs_path, f"{graph_id}.txt"), "r") as graph_file:
+				self.graphs.append((graph_id, StandardGraph.from_string(graph_file.read())))
 
 	def run(self,
 			progressfile: str | None = None,
@@ -116,6 +168,7 @@ class RandomBenchmark:
 			if os.path.exists(results_path):
 				with open(results_path, "r") as f:
 					results = json.load(f)
+					assert(type(results) == list)
 			else:
 				with open(results_path, "w") as f:
 					# Put an empty results.json file there
@@ -123,8 +176,11 @@ class RandomBenchmark:
 				results = []
 			
 			for method in self.methods:
-				if any(result["graph_id"] == graph_id and result["method"] == method for result in results):
-					if not retryFailures:
+				existing_list = [result for result in results if result["graph_id"] == graph_id and result["method"] == method]
+				assert len(existing_list) in {0,1}, "Multiple results for same graph_id and method"
+				if len(existing_list) == 1:
+					existing = existing_list[0]
+					if not ("failure" in existing and retryFailures):
 						continue
 
 				if not method.is_brute():
@@ -146,6 +202,7 @@ class RandomBenchmark:
 				result["method"] = method.name
 				result["graph_id"] = graph_id
 
+				results = [r for r in results if not (r["graph_id"] == graph_id and r["method"] == method)]
 				results.append(result)
 	
 				# Eagerly write results in case of interruption
