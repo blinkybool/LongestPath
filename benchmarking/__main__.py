@@ -8,7 +8,7 @@ benchmark = new_random_benchmark(params_list, [
     Solver("brute", Method.BRANCH_N_BOUND)
 ])
 
-benchmark = RandomBenchmark.load_latest()
+# benchmark = RandomBenchmark.load_latest()
 
 print(benchmark.benchmark_path)
 benchmark.run(retryFailures=True)
