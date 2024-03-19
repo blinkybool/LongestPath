@@ -4,9 +4,10 @@ from longestpath.brute import Method
 params_list = [RandomParams(True, n, e) for n in [40, 50] for e in [20, 30, 40]]
 
 benchmark = new_random_benchmark(params_list, [
-    Solver("brute", Method.BRUTE_FORCE),
-    Solver("brute", Method.BRANCH_N_BOUND),
+    # Solver("brute", Method.BRUTE_FORCE),
+    # Solver("brute", Method.BRANCH_N_BOUND),
     Solver("kalp"),
+    Solver("kalp", threads=4),
 ])
 
 # benchmark = RandomBenchmark.load_latest()
