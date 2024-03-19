@@ -330,37 +330,43 @@ void longest_path_branch_and_bound(VertArray *best_path, NeighboursGraph *graph,
 	free(path_set);
 }
 
-int compare_in_degree(void *in_degrees, const void *a, const void *b) {
-	return ((int *) in_degrees)[*(int *)b] - ((int *) in_degrees)[*(int *)a];
+typedef struct {
+	int vertex;
+	int in_degree;
+} VertexInfo;
+
+int compare_in_degree(const void *a, const void *b) {
+	return ((VertexInfo *) b)->in_degree - ((VertexInfo *) a)->in_degree;
 }
 
 void sort_vertices_by_in_degree(NeighboursGraph *graph, int *sorted_vertices) {
 	int num_vertices = graph->vertices;
 
-	int *in_degrees = malloc(sizeof(int) * num_vertices);
+	VertexInfo *vertex_infos = malloc(sizeof(VertexInfo) * num_vertices);
 
 	for (int i = 0; i < num_vertices; ++i) {
-		in_degrees[i] = 0;
+		vertex_infos[i].vertex = i;
+		vertex_infos[i].in_degree = 0;
 	}
 
 	// Iterate over every edge. Whenever an edge i->j is found, increment j's in-degree
 	for (int i = 0; i < num_vertices; ++i) {
 		int *adj_vertices = graph->adj[i].elems;
 		int d = graph->adj[i].count;
-		for (int j = 0; j < d; j++) {
+		for (int j = 0; j < d; ++j) {
 			int neighbor = adj_vertices[j];
-			++in_degrees[neighbor];
+			++vertex_infos[neighbor].in_degree;
 		}
 	}
 
+	qsort(vertex_infos, num_vertices, sizeof(int), compare_in_degree);
+	
 	for (int i = 0; i < num_vertices; ++i) {
-		sorted_vertices[i] = i;
+		sorted_vertices[i] = vertex_infos[i].vertex;
 	}
 
-	qsort_r(sorted_vertices, num_vertices, sizeof(int), in_degrees, compare_in_degree);
-
 	// Free the dynamically allocated memory
-	free(in_degrees);
+	free(vertex_infos);
 }
 
 void longest_path_fast_bound(VertArray *longest_path, NeighboursGraph *graph, FILE *prog) {
@@ -407,6 +413,7 @@ void longest_path_fast_bound(VertArray *longest_path, NeighboursGraph *graph, FI
 	len = 1;
 	path[0] = vertex;
 	path_set[vertex] = true;
+	branch_index = 0;
 
 	// Each loop, either try to extend the path, or backtrack to try the next
 	// edge out of the previous vertex.
@@ -461,6 +468,9 @@ void longest_path_fast_bound(VertArray *longest_path, NeighboursGraph *graph, FI
 				path_set[vertex] = 0;
 
 				++sorted_index;
+				if (sorted_index >= num_vertices) {
+					break;
+				}
 				vertex = sorted_vertices[sorted_index];
 
 				path_set[vertex] = 1;

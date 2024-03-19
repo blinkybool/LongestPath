@@ -37,7 +37,13 @@ def solve(graph: StandardGraph, timeout: float, method: str, progressfile: Optio
 		timeout=timeout
 	)
 
+	if process.returncode < 0:
+		print(process.stdout)
+		print(process.stderr)
+		raise RuntimeError(f"Executable exited with error. Return code {process.returncode}")
+
 	if process.returncode != 0:
+		print(process.stdout)
 		print(process.stderr)
 		raise RuntimeError("Executable exited with error.")
 	
