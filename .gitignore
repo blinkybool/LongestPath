@@ -16,3 +16,5 @@ envs/
 .conda/
 *.log
 benchmarks
+
+kalp_files/temp.graph

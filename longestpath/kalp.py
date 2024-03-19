@@ -8,6 +8,7 @@ from dotenv import dotenv_values
 import re
 from .solveresult import SolveResult
 from .utils import run_with_timeout
+import time
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -147,11 +148,13 @@ def run_KaLP_with_start_and_target(
     if partition_configuration != None:
         command.append(f"--partition_configuration={partition_configuration}")
 
+    tic = time.perf_counter()
     result = subprocess.run(
         command, 
         stdout=subprocess.PIPE, 
         text=True
     )
+    toc = time.perf_counter()
 
     if result.returncode != 0:
         print("result")
@@ -172,7 +175,7 @@ def run_KaLP_with_start_and_target(
         else:
             break
 
-    return path, result.stdout
+    return path, result.stdout, toc - tic
 
 def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
     """
@@ -192,6 +195,11 @@ def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
         return [], stdout
 
 def run_KaLP_universal(file_path: str, *args, **kwargs):
+    """
+    Runs KaLP on each pair of start and target nodes in order to find the longest path in the entire graph.
+    It returns the total running time of KaLP. 
+    For the runtime we measure just the KaLP process itself, much of the surrounding python code is ignored.
+    """
     nr_vertices = None
 
     if re.search(r".*\.dimacs$", file_path) != None:
@@ -204,14 +212,17 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
         raise ValueError(f"File should have .graph or .dimacs extension but the path is: {path}")
 
     longest_path = []
+    runtime = 0
 
     for s in range(nr_vertices):
         for t in range(0, s):
-            path, stdout = run_KaLP_with_start_and_target(file_path, s, t, *args, **kwargs)
+            path, stdout, dt = run_KaLP_with_start_and_target(file_path, s, t, *args, **kwargs)
+            runtime += dt
+
             if len(path) > len(longest_path):
                 longest_path = path
 
-    return longest_path
+    return longest_path, runtime
 
 
 def solve_KaLP_no_timeout(graph: StandardGraph, *args, **kwargs) -> SolveResult:
@@ -222,11 +233,9 @@ def solve_KaLP_no_timeout(graph: StandardGraph, *args, **kwargs) -> SolveResult:
         print(result)
         raise RuntimeError("Incorrect graph format detected by KaLP")
 
-    path = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
+    path, runtime = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
 
-    # TODO: timing!
-
-    return {"path": path, "run_time": 0}
+    return {"path": path, "run_time": runtime}
 
 def solve_KaLP(graph: StandardGraph, timeout: float | None = None, *args, **kwargs):
     return run_with_timeout(solve_KaLP_no_timeout, (graph, *args), kwargs, timeout)
@@ -257,6 +266,5 @@ if __name__ == "__main__":
 
     # print(stdout)
     # print(path)
-
-    print(solve_KaLP(G, 1))
+    print(solve_KaLP(G, 2))
 
