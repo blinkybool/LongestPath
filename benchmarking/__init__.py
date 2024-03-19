@@ -1,7 +1,7 @@
 import os, json, pathlib
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, TypedDict, Optional, NamedTuple, Dict
+from typing import List, TypedDict, Optional, NamedTuple, Dict, Any, Callable
 from enum import Enum
 from longestpath import (
 	StandardGraph,
@@ -10,19 +10,40 @@ from longestpath import (
 	gen_erdos_reyni_directed,
 	brute)
 
-class Method(str, Enum):
-	BRUTE_FORCE = "BRUTE_FORCE"
-	BRANCH_N_BOUND = "BRANCH_N_BOUND"
-	FAST_BOUND = "FAST_BOUND"
-	BRUTE_FORCE_COMPLETE = "BRUTE_FORCE_COMPLETE"
+@dataclass
+class Solver():
+	function_dict = {
+		"brute": brute.solve
+	}
+	name: str
+	args: List[Any]
+	kwargs: Dict[str, Any]
 
-	def is_brute(self) -> bool:
-		return self.value in {
-			Method.BRUTE_FORCE,
-			Method.BRANCH_N_BOUND,
-			Method.FAST_BOUND,
-			Method.BRUTE_FORCE_COMPLETE,
+	def __init__(self, name, *args, **kwargs):
+		assert name in Solver.function_dict, "Unknown solver name"
+		self.name = name
+		self.args = args
+		self.kwargs = kwargs
+
+	def run(self, graph, timeout):
+		print(self)
+		return Solver.function_dict[self.name](graph, timeout, *self.args, **self.kwargs)
+
+	def serialise(self):
+		return {
+			"name": self.name,
+			"args": self.args,
+			"kwargs": self.kwargs,
 		}
+
+	@classmethod
+	def deserialise(cls, json):
+		return Solver(json["name"], *json["args"], **json["kwargs"])
+
+	def __repr__(self):
+		args = [i.__repr__() for i in self.args]
+		kwargs = [f"{key}={val.__repr__()}" for key, val in self.kwargs.items()]
+		return f"{self.__class__.__name__}[{self.name}({', '.join(args + kwargs)})]"
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -42,12 +63,12 @@ Result = TypedDict('Result',
 	path=List[int],
 	length=int,
 	run_time=float,
-	method=str,
+	solver=str,
 	failure=Optional[str])
 
 def new_random_benchmark(
 		params_list: List[RandomParams],
-		methods: List[Method],
+		solvers: List[Solver],
 		override_benchmark_path: str | None = None) -> None:
 
 	
@@ -99,7 +120,7 @@ def new_random_benchmark(
 		json.dump({
 			"type": "random",
 			"params_list": [params.serialise() for params in params_list],
-			"methods": methods,
+			"solvers": [m.serialise() for m in solvers],
 			"graph_ids": [graph_id for graph_id, graph in graphs]
 		}, info_file, indent=2)
 
@@ -148,7 +169,7 @@ class RandomBenchmark:
 		with open(self.info_path, "r") as info_file:
 			info = json.load(info_file)
 			self.params_list = [RandomParams(**d) for d in info["params_list"]]
-			self.methods = [Method[method_str] for method_str in info["methods"]]
+			self.solvers = [Solver.deserialise(solver_str) for solver_str in info["solvers"]]
 			self.graph_ids = info["graph_ids"]
 		
 		self.graphs = []
@@ -165,6 +186,7 @@ class RandomBenchmark:
 		results_path = os.path.join(self.benchmark_path, "results.json")
 
 		for graph_id, graph in self.graphs:
+			# Load results.json
 			if os.path.exists(results_path):
 				with open(results_path, "r") as f:
 					results = json.load(f)
@@ -175,20 +197,21 @@ class RandomBenchmark:
 					json.dump([], f)
 				results = []
 			
-			for method in self.methods:
-				existing_list = [result for result in results if result["graph_id"] == graph_id and result["method"] == method]
-				assert len(existing_list) in {0,1}, "Multiple results for same graph_id and method"
+			# Run benchmark
+			for solver_index, solver in enumerate(self.solvers):
+				existing_list = [
+					result for result in results 
+						if result["graph_id"] == graph_id and result["solver"] == solver_index
+				]
+				assert len(existing_list) in {0,1}, "Multiple results for same graph_id and solver"
 				if len(existing_list) == 1:
 					existing = existing_list[0]
 					if not ("failure" in existing and retryFailures):
 						continue
 
-				if not method.is_brute():
-					raise RuntimeError("Non-brute solver not handled")
-				
-				print(method.name, graph_id)
+				print(solver.name, graph_id)
 				try:
-					result = brute.solve(graph, method, progressfile=progressfile, timeout=timeout)
+					result = solver.run(graph, timeout)
 					assert("run_time" in result)
 					assert("path" in result)
 					result["length"] = len(result["path"])
@@ -199,10 +222,10 @@ class RandomBenchmark:
 						"run_time": timeout,
 					}
 
-				result["method"] = method.name
+				result["solver"] = solver_index
 				result["graph_id"] = graph_id
 
-				results = [r for r in results if not (r["graph_id"] == graph_id and r["method"] == method)]
+				results = [r for r in results if not (r["graph_id"] == graph_id and r["solver"] == solver_index)]
 				results.append(result)
 	
 				# Eagerly write results in case of interruption

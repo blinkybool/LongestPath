@@ -6,15 +6,15 @@ from typing import TypedDict, List, Optional
 import pathlib
 brute_path = pathlib.Path(__file__).parent.joinpath("brute")
 
-class Method(Enum):
-	BRUTE_FORCE = 1
-	BRANCH_N_BOUND = 2
-	FAST_BOUND = 3
-	BRUTE_FORCE_COMPLETE = 4
+class Method(str, Enum):
+	BRUTE_FORCE = "BRUTE_FORCE"
+	BRANCH_N_BOUND = "BRANCH_N_BOUND"
+	FAST_BOUND = "FAST_BOUND"
+	BRUTE_FORCE_COMPLETE = "BRUTE_FORCE_COMPLETE"
 
 SolveResult = TypedDict('SolveResult', {'path': List[int], 'run_time': float})
 
-def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = None, timeout: float = None) -> SolveResult:
+def solve(graph: StandardGraph, timeout: float, method: str, progressfile: Optional[str] = None) -> SolveResult:
 	'''
 	Throws TimeoutError if timeout is exceeded
 	'''
@@ -22,13 +22,20 @@ def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = No
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
 
-	args = [brute_path, "-m", method.name]
+	args = [brute_path, "-m", method]
 
 	if progressfile is not None:
 		args.append("-p")
 		args.append(progressfile)
 
-	process = subprocess.run(args, executable=brute_path, input=str(graph), stdout=subprocess.PIPE, text=True, timeout=timeout)
+	process = subprocess.run(
+		args, 
+		executable=brute_path, 
+		input=str(graph), 
+		stdout=subprocess.PIPE, 
+		text=True, 
+		timeout=timeout
+	)
 
 	if process.returncode != 0:
 		print(process.stderr)
