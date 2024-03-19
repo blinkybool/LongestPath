@@ -1,12 +1,13 @@
 
-import longestpath.brute as brute
-import longestpath.kalp as kalp
+from longestpath import brute, ilp, kalp
 from dataclasses import dataclass
 from typing import TypedDict, List, Any, Dict
+from .utils import with_timed_result
 
 solvers = {
-    "brute": brute.solve,
-	"kalp": kalp.solve_KaLP
+	"brute": brute.solve,
+	"kalp": kalp.solve_KaLP,
+	"ilp": with_timed_result(ilp.solve),
 }
 
 @dataclass

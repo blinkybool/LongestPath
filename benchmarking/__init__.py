@@ -10,6 +10,7 @@ from longestpath import (
 	gen_erdos_reyni_directed)
 from longestpath.solvers import Solver
 import multiprocessing
+from subprocess import TimeoutExpired
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -181,7 +182,7 @@ class RandomBenchmark:
 					assert("run_time" in result)
 					assert("path" in result)
 					result["length"] = len(result["path"])
-				except (TimeoutError, multiprocessing.context.TimeoutError):
+				except (TimeoutError, TimeoutExpired, multiprocessing.context.TimeoutError):
 					result = {
 						"graph_id": graph_id,
 						"failure": "timeout",
