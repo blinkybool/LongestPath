@@ -30,7 +30,13 @@ def solve(graph: StandardGraph, method: Method, progressfile: Optional[str] = No
 
 	process = subprocess.run(args, executable=brute_path, input=str(graph), stdout=subprocess.PIPE, text=True, timeout=timeout)
 
+	if process.returncode < 0:
+		print(process.stdout)
+		print(process.stderr)
+		raise RuntimeError(f"Executable exited with error. Return code {process.returncode}")
+
 	if process.returncode != 0:
+		print(process.stdout)
 		print(process.stderr)
 		raise RuntimeError("Executable exited with error.")
 	
