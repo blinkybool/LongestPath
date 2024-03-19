@@ -12,7 +12,7 @@ benchmark = new_random_benchmark(params_list, [
 benchmark = RandomBenchmark.load_latest()
 
 print(benchmark.benchmark_path)
-benchmark.run(retryFailures=True)
+benchmark.run(retryFailures=True, timeout=2)
 
 # def bingbong():
 #     return 8

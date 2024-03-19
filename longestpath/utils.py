@@ -6,7 +6,7 @@ def call(fun, args, kwargs):
 
 def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
     if timeout == None:
-        return fun()
+        return fun(*args, **kwargs)
 
     else:
         result = None

@@ -238,7 +238,7 @@ def solve_KaLP_no_timeout(graph: StandardGraph, *args, **kwargs) -> SolveResult:
     return {"path": path, "run_time": runtime}
 
 def solve_KaLP(graph: StandardGraph, timeout: float | None = None, *args, **kwargs):
-    return run_with_timeout(solve_KaLP_no_timeout, (graph, *args), kwargs, timeout)
+    return run_with_timeout(solve_KaLP_no_timeout, [graph, *args], kwargs, timeout)
 
 
 if __name__ == "__main__":
@@ -266,5 +266,5 @@ if __name__ == "__main__":
 
     # print(stdout)
     # print(path)
-    print(solve_KaLP(G, 2))
+    print(solve_KaLP(G))
 
