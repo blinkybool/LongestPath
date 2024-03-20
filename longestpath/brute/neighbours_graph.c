@@ -107,7 +107,7 @@ NeighboursGraph *read_graph(bool undirected) {
 	printf("Read graph.\n");
 	printf("vertices: %d\n", vertices);
 	printf("edges: %d\n", edges);
-	printf("directed: %s\n", undirected ? "true" : "false");
+	printf("directed: %s\n", undirected ? "false" : "true");
 	return graph;
 }
 
@@ -359,7 +359,7 @@ void sort_vertices_by_in_degree(NeighboursGraph *graph, int *sorted_vertices) {
 		}
 	}
 
-	qsort(vertex_infos, num_vertices, sizeof(int), compare_in_degree);
+	qsort(vertex_infos, num_vertices, sizeof(VertexInfo), compare_in_degree);
 	
 	for (int i = 0; i < num_vertices; ++i) {
 		sorted_vertices[i] = vertex_infos[i].vertex;
