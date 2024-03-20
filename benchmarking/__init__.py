@@ -31,67 +31,6 @@ Result = TypedDict('Result',
 	solver=str,
 	failure=Optional[str])
 
-def new_random_benchmark(
-		params_list: List[RandomParams],
-		solvers: List[Solver],
-		override_benchmark_path: str | None = None) -> None:
-
-	
-	if override_benchmark_path:
-		benchmark_path = override_benchmark_path
-	else:
-		if not os.path.exists("./benchmarks"):
-			os.mkdir("./benchmarks")
-		if not os.path.isdir("./benchmarks"):
-			raise RuntimeError("Failed to make ./benchmarks folder")
-		
-		datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
-		benchmark_path = os.path.join("./benchmarks", f"random-{datetime_str}")
-
-	graphs_path = os.path.join(benchmark_path, "graphs")
-	
-	if os.path.exists(benchmark_path):
-		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
-
-	graphs_to_write = []
-	graph_infos = {}
-
-	for i, params in enumerate(params_list):
-		graph_id = str(i)
-		if not params.directed:
-			# Unclear what the undirected graph format is.
-			raise RuntimeError("Undirected graphs not properly handled")
-
-		graph: StandardGraph
-		if params.num_edges:
-			graph = gen_num_edges(params.num_vertices, params.num_edges)
-		elif params.p:
-			graph = gen_erdos_reyni_directed(params.num_vertices, params.p)
-		elif params.average_degree:
-			graph = gen_average_degree_directed(params.num_vertices, params.average_degree)
-		else:
-			raise RuntimeError(f"Invalid params: {params}")
-
-		graphs_to_write.append((graph_id, graph))
-		graph_infos[graph_id] = params.serialise()
-
-	os.mkdir(benchmark_path)
-	os.mkdir(graphs_path)
-
-	for graph_id, graph in graphs_to_write:
-		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
-			graph_file.write(str(graph))
-		
-	info_path = os.path.join(benchmark_path, "info.json")
-	with open(info_path, "w") as info_file:
-		json.dump({
-			"type": "random",
-			"solvers": [m.serialise() for m in solvers],
-			"graph_infos": graph_infos,
-		}, info_file, indent=2)
-
-	return Benchmark(benchmark_path, graphs_path, info_path)
-
 class Benchmark:
 
 	@classmethod
@@ -228,3 +167,63 @@ class Benchmark:
 
 		return results
 
+def new_random_benchmark(
+		params_list: List[RandomParams],
+		solvers: List[Solver],
+		override_benchmark_path: str | None = None) -> Benchmark:
+
+	
+	if override_benchmark_path:
+		benchmark_path = override_benchmark_path
+	else:
+		if not os.path.exists("./benchmarks"):
+			os.mkdir("./benchmarks")
+		if not os.path.isdir("./benchmarks"):
+			raise RuntimeError("Failed to make ./benchmarks folder")
+		
+		datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
+		benchmark_path = os.path.join("./benchmarks", f"random-{datetime_str}")
+
+	graphs_path = os.path.join(benchmark_path, "graphs")
+	
+	if os.path.exists(benchmark_path):
+		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
+
+	graphs_to_write = []
+	graph_infos = {}
+
+	for i, params in enumerate(params_list):
+		graph_id = str(i)
+		if not params.directed:
+			# Unclear what the undirected graph format is.
+			raise RuntimeError("Undirected graphs not properly handled")
+
+		graph: StandardGraph
+		if params.num_edges:
+			graph = gen_num_edges(params.num_vertices, params.num_edges)
+		elif params.p:
+			graph = gen_erdos_reyni_directed(params.num_vertices, params.p)
+		elif params.average_degree:
+			graph = gen_average_degree_directed(params.num_vertices, params.average_degree)
+		else:
+			raise RuntimeError(f"Invalid params: {params}")
+
+		graphs_to_write.append((graph_id, graph))
+		graph_infos[graph_id] = params.serialise()
+
+	os.mkdir(benchmark_path)
+	os.mkdir(graphs_path)
+
+	for graph_id, graph in graphs_to_write:
+		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
+			graph_file.write(str(graph))
+		
+	info_path = os.path.join(benchmark_path, "info.json")
+	with open(info_path, "w") as info_file:
+		json.dump({
+			"type": "random",
+			"solvers": [m.serialise() for m in solvers],
+			"graph_infos": graph_infos,
+		}, info_file, indent=2)
+
+	return Benchmark(benchmark_path, graphs_path, info_path)
