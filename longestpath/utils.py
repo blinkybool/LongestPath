@@ -17,13 +17,14 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
 
         return result
 
-def timeout(seconds, action=None):
+def handler(queue, func, args, kwargs):
+    queue.put(func(*args, *kwargs))
+
+def with_timeout(seconds, default=None):
     """
     Calls any function with timeout after 'seconds'.
     If a timeout occurs, 'action' will be returned or called if it is a function-like object.
     """
-    def handler(queue, func, args, kwargs):
-        queue.put(func(args, *kwargs))
 
     def decorator(func):
 
@@ -35,10 +36,10 @@ def timeout(seconds, action=None):
             if p.is_alive():
                 p.terminate()
                 p.join()
-                if hasattr(action, '__call__'):
-                    return action()
+                if hasattr(default, '__call__'):
+                    return default()
                 else:
-                    return action
+                    return default
             else:
                 return q.get()
 

@@ -7,7 +7,6 @@ import numpy as np
 from dotenv import dotenv_values
 import re
 from .solveresult import SolveResult
-from .utils import run_with_timeout
 import time
 
 def check_KaLP_dimacs_format(path: str):
@@ -225,7 +224,7 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
     return longest_path, runtime
 
 
-def solve_KaLP_no_timeout(graph: StandardGraph, *args, **kwargs) -> SolveResult:
+def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
     export_KaLP_metis("kalp_files/temp.graph", graph)
     result = check_KaLP_metis("kalp_files/temp.graph")
 
@@ -236,10 +235,6 @@ def solve_KaLP_no_timeout(graph: StandardGraph, *args, **kwargs) -> SolveResult:
     path, runtime = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
 
     return {"path": path, "run_time": runtime}
-
-def solve_KaLP(graph: StandardGraph, timeout: float | None = None, *args, **kwargs):
-    return run_with_timeout(solve_KaLP_no_timeout, [graph, *args], kwargs, timeout)
-
 
 if __name__ == "__main__":
     random.seed(0)

@@ -15,10 +15,7 @@ STATUS = {
 def var_solution_is_one(var):
 	return round(var.solution_value()) == 1
 
-def solve(graph: StandardGraph, timeout: int | None = None, max_path_length: int | None = None):
-	
-	if timeout is not None:
-		raise NotImplementedError("No timeout for ILP yet")
+def solve(graph: StandardGraph, max_path_length: int | None = None):
 	
 	solver, variables = create_solver(graph, max_path_length=max_path_length)
 

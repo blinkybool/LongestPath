@@ -2,22 +2,15 @@
 from ..gen import StandardGraph
 import subprocess
 from enum import Enum
-from typing import TypedDict, List, Optional
+from typing import Literal
 import pathlib
 from ..solveresult import SolveResult
 
 brute_path = pathlib.Path(__file__).parent.joinpath("brute")
 
-class Method(str, Enum):
-	BRUTE_FORCE = "BRUTE_FORCE"
-	BRANCH_N_BOUND = "BRANCH_N_BOUND"
-	FAST_BOUND = "FAST_BOUND"
-	BRUTE_FORCE_COMPLETE = "BRUTE_FORCE_COMPLETE"
+Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
-def solve(graph: StandardGraph, timeout: float, method: str, progressfile: Optional[str] = None) -> SolveResult:
-	'''
-	Throws TimeoutError if timeout is exceeded
-	'''
+def solve(graph: StandardGraph, method: Method, progressfile: str | None = None) -> SolveResult:
 
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
@@ -32,9 +25,8 @@ def solve(graph: StandardGraph, timeout: float, method: str, progressfile: Optio
 		args, 
 		executable=brute_path, 
 		input=str(graph), 
-		stdout=subprocess.PIPE, 
+		capture_output=True,
 		text=True, 
-		timeout=timeout
 	)
 
 	if process.returncode < 0:

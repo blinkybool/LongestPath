@@ -1,16 +1,14 @@
-import os, json, pathlib
-from dataclasses import dataclass
+import os, json, sys
 from datetime import datetime
-from typing import List, TypedDict, Optional, NamedTuple, Dict, Any, Callable
-from enum import Enum
+from typing import List, TypedDict, Optional, NamedTuple
 from longestpath import (
 	StandardGraph,
 	gen_num_edges,
 	gen_average_degree_directed,
 	gen_erdos_reyni_directed)
 from longestpath.solvers import Solver
-import multiprocessing
-from subprocess import TimeoutExpired
+from longestpath.utils import with_timeout
+import time
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -146,7 +144,6 @@ class RandomBenchmark:
 				self.graphs.append((graph_id, StandardGraph.from_string(graph_file.read())))
 
 	def run(self,
-			progressfile: str | None = None,
 			timeout: float | None = None,
 			retryFailures: bool = False):
 
@@ -176,18 +173,39 @@ class RandomBenchmark:
 					if not ("failure" in existing and retryFailures):
 						continue
 
-				print(solver, graph_id)
+				print(f"graph: {graph_id}.txt, solver: {solver} ... ", end="")
+
+
+				interrupted = False
+				run_time = None
+				result = None
+
 				try:
-					result = solver.run(graph, timeout)
+					tick = time.perf_counter()
+					result = with_timeout(timeout, default=None)(solver.run)(graph)
+				except KeyboardInterrupt:
+					# Will stop after writing results
+					interrupted = True
+					tock = time.perf_counter()
+					run_time = tock - tick
+
+
+				if result is None:
+					result = {
+						"failure": interrupted and "interrupted" or "timeout",
+						"run_time": run_time or timeout,
+					}
+					print("❌ (timeout)")
+				elif "failure" in result:
+					print(f'❌ ({result["failure"]})')
+					if "run_time" not in result:
+						result["run_time"] = timeout
+				else:
 					assert("run_time" in result)
 					assert("path" in result)
-					result["length"] = len(result["path"])
-				except (TimeoutError, TimeoutExpired, multiprocessing.context.TimeoutError):
-					result = {
-						"graph_id": graph_id,
-						"failure": "timeout",
-						"run_time": timeout,
-					}
+					result["length"] = len(result["path"]) - 1
+					print(f'✅')
+					print(f'length: {result["length"]}, run_time: {result["run_time"]}')
 
 				result["solver"] = solver_index
 				result["graph_id"] = graph_id
@@ -198,6 +216,9 @@ class RandomBenchmark:
 				# Eagerly write results in case of interruption
 				with open(results_path, "w") as f:
 					json.dump(results, f, indent = 2)
+
+				if interrupted:
+					sys.exit(130)
 
 	def results(self) -> List[Result]:
 		results_path = os.path.join(self.benchmark_path, "results.json")
