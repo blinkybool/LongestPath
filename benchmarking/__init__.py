@@ -53,7 +53,8 @@ def new_random_benchmark(
 	if os.path.exists(benchmark_path):
 		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
 
-	graphs = []
+	graphs_to_write = []
+	graph_infos = {}
 
 	for i, params in enumerate(params_list):
 		graph_id = str(i)
@@ -71,12 +72,13 @@ def new_random_benchmark(
 		else:
 			raise RuntimeError(f"Invalid params: {params}")
 
-		graphs.append((graph_id, graph))
+		graphs_to_write.append((graph_id, graph))
+		graph_infos[graph_id] = params.serialise()
 
 	os.mkdir(benchmark_path)
 	os.mkdir(graphs_path)
 
-	for graph_id, graph in graphs:
+	for graph_id, graph in graphs_to_write:
 		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
 			graph_file.write(str(graph))
 		
@@ -84,14 +86,13 @@ def new_random_benchmark(
 	with open(info_path, "w") as info_file:
 		json.dump({
 			"type": "random",
-			"params_list": [params.serialise() for params in params_list],
 			"solvers": [m.serialise() for m in solvers],
-			"graph_ids": [graph_id for graph_id, graph in graphs]
+			"graph_infos": graph_infos,
 		}, info_file, indent=2)
 
-	return RandomBenchmark(benchmark_path, graphs_path, info_path)
+	return Benchmark(benchmark_path, graphs_path, info_path)
 
-class RandomBenchmark:
+class Benchmark:
 
 	@classmethod
 	def is_benchmark_dir(cls, path: str):
@@ -133,9 +134,8 @@ class RandomBenchmark:
 
 		with open(self.info_path, "r") as info_file:
 			info = json.load(info_file)
-			self.params_list = [RandomParams(**d) for d in info["params_list"]]
 			self.solvers = [Solver.deserialise(solver_str) for solver_str in info["solvers"]]
-			self.graph_ids = info["graph_ids"]
+			self.graph_ids = [graph_id for graph_id, _ in info["graph_infos"].items()]
 		
 		self.graphs = []
 		
