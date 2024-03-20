@@ -1,4 +1,4 @@
-import os, json, sys
+import os, json, sys, shutil
 from datetime import datetime
 from typing import List, TypedDict, Optional, NamedTuple
 from longestpath import (
@@ -9,6 +9,7 @@ from longestpath import (
 from longestpath.solvers import Solver
 from longestpath.utils import with_timeout
 import time
+import shutil
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -222,6 +223,48 @@ def new_random_benchmark(
 	with open(info_path, "w") as info_file:
 		json.dump({
 			"type": "random",
+			"solvers": [m.serialise() for m in solvers],
+			"graph_infos": graph_infos,
+		}, info_file, indent=2)
+
+	return Benchmark(benchmark_path, graphs_path, info_path)
+
+def new_graph_file_benchmark(
+		graph_path: str,
+		solvers: List[Solver],
+		benchmark_path: str | None = None) -> Benchmark:
+	'''
+	benchmark_path should probably be of the form ./benchmarks/name
+	'''
+
+	graphs_path = os.path.join(benchmark_path, "graphs")
+
+	if os.path.exists(benchmark_path):
+		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
+
+	try:
+		with open(graph_path, "r") as f:
+			graph = StandardGraph.from_string(f.read())
+	except Exception:
+		raise Exception(f"Cannot read graph at path {graph_path}")
+	
+	graph_name, _ = os.path.splitext(os.path.basename(graph_path))
+
+	graph_infos = {
+		graph_name: {
+			"source_path": graph_path,
+		}
+	}
+
+	os.mkdir(benchmark_path)
+	os.mkdir(graphs_path)
+
+	shutil.copy2(graph_path, os.path.join(graphs_path, graph_name + ".txt"))
+
+	info_path = os.path.join(benchmark_path, "info.json")
+	with open(info_path, "w") as info_file:
+		json.dump({
+			"type": "graph_file",
 			"solvers": [m.serialise() for m in solvers],
 			"graph_infos": graph_infos,
 		}, info_file, indent=2)
