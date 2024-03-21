@@ -1,6 +1,20 @@
 **/*.o
 lpath
+longestpath/brute/brute
 
 venv/
 __pycache__
 .vscode/**
+envs/
+**/.ipynb_checkpoints/
+.DS_Store
+
+
+.env
+
+.python-version
+.conda/
+*.log
+benchmarks
+
+kalp_files/temp.graph

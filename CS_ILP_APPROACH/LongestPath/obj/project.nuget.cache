@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "jC1EG0//ImnyJULwmj+C64jCv2c2V6cZIZKn7AugA9+eYp5/BBwbzshrbobDeQGN5Z98EnHMD4mA1jfhbJse7g==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\cevan\\OneDrive\\Documents\\GitHub\\LongestPath\\CS_ILP_APPROACH\\LongestPath\\LongestPath.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools\\9.8.3296\\google.ortools.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools.runtime.linux-arm64\\9.8.3296\\google.ortools.runtime.linux-arm64.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools.runtime.linux-x64\\9.8.3296\\google.ortools.runtime.linux-x64.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools.runtime.osx-arm64\\9.8.3296\\google.ortools.runtime.osx-arm64.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools.runtime.osx-x64\\9.8.3296\\google.ortools.runtime.osx-x64.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.ortools.runtime.win-x64\\9.8.3296\\google.ortools.runtime.win-x64.9.8.3296.nupkg.sha512",
+    "C:\\Users\\cevan\\.nuget\\packages\\google.protobuf\\3.25.0\\google.protobuf.3.25.0.nupkg.sha512"
+  ],
+  "logs": []
+}

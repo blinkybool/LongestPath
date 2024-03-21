@@ -1,0 +1,7 @@
+name: tno-env
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - ipykernel
+prefix: /home/bprice/.conda/envs/tno-env

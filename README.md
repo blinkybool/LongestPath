@@ -14,12 +14,3 @@ pip install -U pip
 # Install dependencies (e.g. for matplotlib and numpy)
 pip install -r requirements.txt
 ```
-
-```bash
-make
-# Find longest path in randomly generated graph of 30 vertices (p=0.3/30)
-./lpath 30
-
-# make and run
-make && ./lpath 30
-```
