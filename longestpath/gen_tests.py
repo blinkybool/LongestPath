@@ -1,4 +1,4 @@
-from gen import *
+from .gen import *
 import unittest
 import random
 

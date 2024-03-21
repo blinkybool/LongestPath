@@ -1,11 +1,13 @@
-from standard_graph import StandardGraph, linear_graph
+from .standard_graph import StandardGraph, linear_graph
 import os
 import subprocess
-from gen import gen_planted_path, gen_erdos_reyni_directed
+from .gen import gen_planted_path, gen_erdos_reyni_directed
 import random
 import numpy as np
 from dotenv import dotenv_values
 import re
+from .solveresult import SolveResult
+import time
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -106,8 +108,14 @@ def export_KaLP_metis_with_universal_nodes(path: str, graph: StandardGraph):
 
 def check_KaLP_metis(
     path: str, 
-    kalp_graphchecker_path = (dotenv_values(".env")["KALP_PATH"] + "/graphchecker")
+    kalp_graphchecker_path = None
     ):
+
+    if kalp_graphchecker_path is None:
+        env_dict = dotenv_values(".env")
+        assert "KALP_PATH" not in env_dict, "No KALP_PATH environment variable set"
+        kalp_graphchecker_path = env_dict["KALP_PATH"] + "/graphchecker"
+
     result = subprocess.run(
         [kalp_graphchecker_path, path], 
         stdout=subprocess.PIPE, 
@@ -122,7 +130,7 @@ def run_KaLP_with_start_and_target(
         threads=None,
         steps=None,
         partition_configuration=None,
-        kalp_path = (dotenv_values(".env")["KALP_PATH"] + "/kalp")
+        kalp_path = None
     ):
     """
     Runs KaLP on the file specified by `path`. 
@@ -130,6 +138,12 @@ def run_KaLP_with_start_and_target(
 
     Note that start and target here should be between 0 and nr_vertices - 1.
     """
+
+    if kalp_path is None:
+        env_dict = dotenv_values(".env")
+        assert "KALP_PATH" not in env_dict, "No KALP_PATH environment variable set"
+        kalp_path = env_dict["KALP_PATH"] + "/kalp"
+
     command = [
         kalp_path, 
         path, 
@@ -145,11 +159,13 @@ def run_KaLP_with_start_and_target(
     if partition_configuration != None:
         command.append(f"--partition_configuration={partition_configuration}")
 
+    tic = time.perf_counter()
     result = subprocess.run(
         command, 
         stdout=subprocess.PIPE, 
         text=True
     )
+    toc = time.perf_counter()
 
     if result.returncode != 0:
         print("result")
@@ -170,7 +186,7 @@ def run_KaLP_with_start_and_target(
         else:
             break
 
-    return path, result.stdout
+    return path, result.stdout, toc - tic
 
 def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
     """
@@ -190,6 +206,11 @@ def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
         return [], stdout
 
 def run_KaLP_universal(file_path: str, *args, **kwargs):
+    """
+    Runs KaLP on each pair of start and target nodes in order to find the longest path in the entire graph.
+    It returns the total running time of KaLP. 
+    For the runtime we measure just the KaLP process itself, much of the surrounding python code is ignored.
+    """
     nr_vertices = None
 
     if re.search(r".*\.dimacs$", file_path) != None:
@@ -202,37 +223,55 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
         raise ValueError(f"File should have .graph or .dimacs extension but the path is: {path}")
 
     longest_path = []
+    runtime = 0
 
     for s in range(nr_vertices):
         for t in range(0, s):
-            path, stdout = run_KaLP_with_start_and_target(file_path, s, t, *args, **kwargs)
+            path, stdout, dt = run_KaLP_with_start_and_target(file_path, s, t, *args, **kwargs)
+            runtime += dt
+
             if len(path) > len(longest_path):
                 longest_path = path
 
-    return longest_path
+    return longest_path, runtime
+
+
+def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
+    export_KaLP_metis("kalp_files/temp.graph", graph)
+    result = check_KaLP_metis("kalp_files/temp.graph")
+
+    if re.search("The graph format seems correct", result) == None:
+        print(result)
+        raise RuntimeError("Incorrect graph format detected by KaLP")
+
+    path, runtime = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
+
+    return {"path": path, "run_time": runtime}
 
 if __name__ == "__main__":
     random.seed(0)
     np.random.seed(0)
-    G = gen_planted_path(20, 0)
+    G = gen_planted_path(10, 0.5)
 
-    # export_KaLP_metis("test.graph", G)
-    export_KaLP_metis_with_universal_nodes("test.graph", G)
-    print(check_KaLP_metis("test.graph"))
+    # # export_KaLP_metis("test.graph", G)
+    # export_KaLP_metis_with_universal_nodes("test.graph", G)
+    # print(check_KaLP_metis("test.graph"))
 
-    # export_KaLP_dimacs_with_universal_nodes("test.dimacs", G)
-    # export_KaLP_dimacs("test.dimacs", G)
-    # print(check_KaLP_dimacs_format("test.dimacs")[0])
+    # # export_KaLP_dimacs_with_universal_nodes("test.dimacs", G)
+    # # export_KaLP_dimacs("test.dimacs", G)
+    # # print(check_KaLP_dimacs_format("test.dimacs")[0])
     
-    path, stdout = run_KaLP_with_start_and_target(
-        "test.graph", 0, 19,
-        threads=8
-    )
-    # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
-    #     1422, 1462,
-    #     threads=4, 
-    #     partition_configuration="fast"
+    # path, stdout = run_KaLP_with_start_and_target(
+    #     "test.graph", 0, 19,
+    #     threads=8
     # )
+    # # path, stdout = run_KaLP_with_start_and_target("../KaLP/examples/maze_one.dimacs", 
+    # #     1422, 1462,
+    # #     threads=4, 
+    # #     partition_configuration="fast"
+    # # )
 
-    print(stdout)
-    print(path)
+    # print(stdout)
+    # print(path)
+    print(solve_KaLP(G))
+

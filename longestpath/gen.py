@@ -2,9 +2,9 @@ import math, random
 from dataclasses import dataclass
 from typing import List, Tuple, Callable
 import numpy as np
-from topsort import TopSorter
-from neighbors_graph import NeighborsGraph
-from standard_graph import StandardGraph, linear_graph, complete_graph
+from .topsort import TopSorter
+from .neighbors_graph import NeighborsGraph
+from .standard_graph import StandardGraph, linear_graph, complete_graph
 
 def random_subset(set: list, p: float) -> list:
 	n = np.random.binomial(len(set), p)
@@ -23,6 +23,10 @@ def gen_average_degree_directed(num_vertices: int, average_degree: float) -> Sta
 	p = min(1, average_degree / num_vertices)
 	return gen_erdos_reyni_directed(num_vertices, p)
 
+def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
+	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
+	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
+	return StandardGraph(num_vertices, random_edges)
 
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
 	"""

@@ -1,7 +1,7 @@
 import math, random
 import numpy as np
-from gen import *
-from visualize import *
+from .gen import *
+from .visualize import *
 
 
 random.seed(3)

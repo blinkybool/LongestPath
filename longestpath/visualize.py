@@ -3,7 +3,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt 
 from dataclasses import dataclass
-from gen import *
+from .gen import *
 from typing import List, Tuple, Callable
 
 @dataclass
@@ -37,7 +37,7 @@ class VisualizableGraph:
                 self.otherVertices.append(vertex)
 
 
-    def visualize(self, path, path_color='r', other_color='b'):
+    def visualize(self, path, path_color='r', other_color='b', width= 3):
         """
         Make a visualized graph
         """
@@ -60,10 +60,40 @@ class VisualizableGraph:
         ecolors = [H[u][v]['color'] for u,v in edges]
         ncolors =[H.nodes[u]['color'] for u in nodes]
 
-
-        nx.draw(H,  edge_color=ecolors, node_color= ncolors, width=3,with_labels=True)
+        plt.figure(figsize =(9, 9)) 
+        nx.draw(H,  edge_color=ecolors, node_color= ncolors, 
+                width=width,with_labels=True)
 
         plt.show()
+
+    def visualize_directed(self, path, path_color='r', other_color='b', width =2):
+        """
+        Make a visualized graph
+        """
+        self.separate(path)
+        # print("other edges", self.otherEdges)
+        # print("other vertices", self.otherVertices)
+        # print("path vertices", self.pathVertices)
+        # print("path edges", self.pathEdges)
+        H = nx.DiGraph()
+        for (s,t) in self.pathEdges:
+            H.add_edge(s,t,color=path_color)
+        for (s,t) in self.otherEdges: 
+            H.add_edge(s,t,color=other_color)
+        for s in self.pathVertices:
+            H.add_node(s,color=path_color)
+        for s in self.otherVertices:
+            H.add_node(s,color=other_color)
+        edges = H.edges()
+        nodes = H.nodes()
+        ecolors = [H[u][v]['color'] for u,v in edges]
+        ncolors =[H.nodes[u]['color'] for u in nodes]
+
+
+        nx.draw(H,  edge_color=ecolors, node_color= ncolors,
+                 width=width, with_labels=True )
+        plt.show()
+
 
 
 def gen_visualizableGraph(G: StandardGraph) -> VisualizableGraph:
@@ -73,11 +103,22 @@ def gen_visualizableGraph(G: StandardGraph) -> VisualizableGraph:
 # def read_longest_path(filename, )-> VisualizableGraph:
 #     return 
 
-def visualize_graph(G, path=[]):
+def visualize_graph(G, path=[],directed= True, width =2):
+    """
+    Visualize graph. At the moment this only works for undirected graphs. 
+    Add a graph and a path. A path is a list of vertices
+    """
     VG = gen_visualizableGraph(G)
     len_path = len(path)
-    path_edges= [(path[i],path[i+1]) for i in range(len_path-1)]
-    VG.visualize(path=path_edges)
+    if(len_path ==0):
+        path_edges =[]
+    else:
+        path_edges= [(path[i],path[i+1]) for i in range(len_path-1)]
+    if(directed==False):
+        VG.visualize(path=path_edges, width=width)
+    else:
+        VG.visualize_directed(path=path_edges, width=width)
+
 
 
 if __name__ == "__main__": 
@@ -85,6 +126,8 @@ if __name__ == "__main__":
     path =[]
     for i in range(15):
         path.append(i)
+
+    visualize_graph(G,path=path,directed=True, width =2)
     visualize_graph(G,path=path)
 
 
@@ -99,3 +142,4 @@ if __name__ == "__main__":
 # for i in range(14):
 #     path.append((i,i+1))
 # VG.visualize(path=path)
+# >>>>>>> 73df0facddc925bc6c5987dd10a05ca7c9ca840e

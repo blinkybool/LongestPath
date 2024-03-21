@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Callable
-from neighbors_graph import NeighborsGraph
+from .neighbors_graph import NeighborsGraph
 import numpy as np
 
 @dataclass
@@ -19,6 +19,16 @@ class StandardGraph:
 	# 8 9
 	def __str__(self) -> str:
 		return f"{self.vertices}\n" + "\n".join(f"{a} {b}" for (a,b) in self.edges)
+	
+	@classmethod
+	def from_string(cls, graph_string: str):
+		lines = graph_string.strip().split('\n')
+		vertices = int(lines[0])
+		edges = []
+		for line in lines[1:]:
+			u, v = map(int, line.split())
+			edges.append((u,v))
+		return cls(vertices=vertices, edges=edges)
 	
 	def to_matrix(self) -> List[List[bool]]:
 		matrix = [[False for _ in range(self.vertices)] for _ in range(self.vertices)]

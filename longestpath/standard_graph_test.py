@@ -1,4 +1,4 @@
-from standard_graph import *
+from .standard_graph import *
 import unittest
 import random
 
