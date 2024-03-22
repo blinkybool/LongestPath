@@ -94,9 +94,9 @@ if __name__ == "__main__":
 	from longestpath import gen_num_edges, gen_average_degree_directed
 	from .utils import with_time
 
-	graph = gen_average_degree_directed(100, 4)
+	graph = gen_average_degree_directed(50, 1)
 
-	result, run_time = with_time(solve)(graph, max_path_length=30)
+	result, run_time = with_time(solve)(graph)
 	print(result)
 	print("run_time", run_time)
 	print("path length", len(result["path"])-1)
