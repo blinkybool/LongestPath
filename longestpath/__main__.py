@@ -3,12 +3,15 @@ import numpy as np
 from .gen import *
 from .visualize import *
 
+from .qubo import doit
 
-random.seed(3)
-np.random.seed(3)
+doit()
 
-G = DAG(gen_DAG(10, 0.5))
+# random.seed(3)
+# np.random.seed(3)
 
-path = G.find_longest_path()
+# G = DAG(gen_DAG(10, 0.5))
 
-visualize_graph(G.expand(1), path)
+# path = G.find_longest_path()
+
+# visualize_graph(G.expand(1), path)

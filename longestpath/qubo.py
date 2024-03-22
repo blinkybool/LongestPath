@@ -3,61 +3,67 @@ import numpy as np
 from dimod import ExactSolver
 import neal
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph
-
-vars = Array.create('x', shape=(M+1, N+1), vartype='BINARY')
-
+from collections import defaultdict
 import time
 
-start = time.time()
-serial_exp = Num(-p) * sum([(sum(block) - Num(1))**2 for block in vars]) + Num(0)
-end = time.time()
 
-print(f"Done with serial_exp : Took {end - start} seconds")
+def doit():
 
-#Seems to output same matrix as below
-# serial_exp = Num(0)
+	N = 100
+	M = N
+	P = -(M+1)
 
-# for m in range(M+1):
-# 	temp_exp = Num(-1)
-# 	for n in range(N+1):
-# 		temp_exp += vars[m][n]
-# 	serial_exp += Num(-p) * temp_exp ** 2
+	graph = gen_average_degree_directed(100, 5)
 
-no_repeat_blocks_exp = Num(0)
+	offset = 0
+	Q = defaultdict(int)
 
-start = time.time()
+	start = time.perf_counter()
+	# P * sum_v=1^N (1 - sum_i=1^M x_i^v)^2
+	for v in range(N+1):
+		# Constant
+		offset += P
+		for v in range(M+1):
+			# Linear 
+			Q[((v,v),(v,v))] += - P
+			# Quadratic
+			for u in range(v+1, M+1):
+				Q[((v,v),(u,v))] += 2 * P
 
-for i in range(N):
-	print(f"{i} / {N-1}")
-	for j in range(M):
+	end = time.perf_counter()
 
-		no_repeat_blocks_exp += sum([vars[j][i] * vars[k][i] for k in range(j+1, M+1)])
+	print(f"Done with serial_exp : Took {end - start} seconds")
 
-# 		for k in range(j+1, M+1):
-# 			no_repeat_blocks_exp += vars[j][i] * vars[k][i] * Num(-p)
-no_repeat_blocks_exp *= Num(-p)
+	start = time.time()
 
-end = time.time()
+	for v in range(N):
+		# print(f"{v} / {N-1}")
+		for u in range(M):
+			for j in range(u+1, M+1):
+				Q[((u,v), (j,v))] += P
 
-print(f"Done with no_repeatblocks_exp : Took {end - start} seconds")
+	end = time.time()
 
-start = time.time()
-edges_exp = Num(0)
-for m in range(M):
-	for i in range(N):
-		for j in range(N):
-			if i == j:
-				continue
-			
-			if matrix[i][j]:
-				edges_exp += vars[m][i] * vars[m+1][j]
-			else:
-				edges_exp += Num(-p) * vars[m][i] * vars[m+1][j]
+	print(f"Done with no_repeatblocks_exp : Took {end - start} seconds")
 
-for m in range(M):
-	for i in range(N):
-		edges_exp += Num(-p) * vars[m][N] * vars[m+1][i]
+	edge_set = set(graph.edges)
 
-end = time.time()
+	start = time.time()
+	for m in range(M):
+		for v in range(N):
+			for u in range(N):
+				if v == u:
+					continue
+				
+				if (v,u) in edge_set:
+					Q[(m,v),(m+1,u)] += 1
+				else:
+					Q[(m,v),(m+1,u)] += P
 
-print(f"Done with edges_exp : Took {end - start} seconds")
+	for m in range(M):
+		for v in range(N):
+			Q[((m,N),(m+1,v))] = P
+
+	end = time.time()
+
+	print(f"Done with edges_exp : Took {end - start} seconds")
