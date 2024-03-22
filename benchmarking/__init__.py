@@ -7,7 +7,7 @@ from longestpath import (
 	gen_average_degree_directed,
 	gen_erdos_reyni_directed)
 from longestpath.solvers import Solver
-from longestpath.utils import with_timeout
+from longestpath.utils import with_timeout, with_try_result
 import time
 import shutil
 
@@ -122,7 +122,7 @@ class Benchmark:
 
 				try:
 					tick = time.perf_counter()
-					result = with_timeout(timeout, default=None)(solver.run)(graph)
+					result = with_timeout(timeout, default=None)(with_try_result(solver.run))(graph)
 				except KeyboardInterrupt:
 					# Will stop after writing results
 					interrupted = True
@@ -138,8 +138,6 @@ class Benchmark:
 					print("❌ (timeout)")
 				elif "failure" in result:
 					print(f'❌ ({result["failure"]})')
-					if "run_time" not in result:
-						result["run_time"] = timeout
 				else:
 					assert("run_time" in result)
 					assert("path" in result)
