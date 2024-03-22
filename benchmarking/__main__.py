@@ -7,8 +7,8 @@ params_list = [RandomParams(directed=True, num_vertices=n, average_degree=a)
 
 benchmark = new_random_benchmark(params_list, [
 	Solver("brute", "FAST_BOUND"),
-	# Solver("brute", "BRUTE_FORCE"),
-	Solver("ilp"),
+	Solver("brute", "BRUTE_FORCE"),
+	# Solver("ilp"),
 ])
 
 # benchmark = Benchmark.load_latest()
