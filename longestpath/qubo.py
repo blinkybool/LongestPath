@@ -4,6 +4,7 @@ from dimod import ExactSolver
 import neal
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph
 from collections import defaultdict
+import time
 
 
 def doit():
