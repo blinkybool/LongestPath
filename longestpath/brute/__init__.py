@@ -6,7 +6,7 @@ from typing import Literal
 import pathlib
 from ..solveresult import SolveResult
 
-brute_path = pathlib.Path(__file__).parent.joinpath("brute")
+brute_path = pathlib.Path(__file__).parent.joinpath("brute.exe")
 
 Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
