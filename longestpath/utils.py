@@ -18,7 +18,7 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
         return result
 
 def handler(queue, func, args, kwargs):
-    queue.put(func(*args, *kwargs))
+    queue.put(func(*args, **kwargs))
 
 def with_timeout(seconds, default=None):
     """
@@ -27,7 +27,6 @@ def with_timeout(seconds, default=None):
     """
 
     def decorator(func):
-
         def wraps(*args, **kwargs):
             q = multiprocessing.Queue()
             p = multiprocessing.Process(target=handler, args=(q, func, args, kwargs))
@@ -73,5 +72,17 @@ def with_time(func):
         result = func(*args, **kwargs)
         tock = time.perf_counter()
         return result, tock-tick
+
+    return wrapped
+
+def with_try_result(func):
+    def wrapped(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            result = {
+                "failure" : repr(e)
+            }
+        return result
 
     return wrapped

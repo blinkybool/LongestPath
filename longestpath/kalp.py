@@ -8,6 +8,7 @@ from dotenv import dotenv_values
 import re
 from .solveresult import SolveResult
 import time
+from pathlib import Path
 
 def check_KaLP_dimacs_format(path: str):
     nr_vertices = None
@@ -113,7 +114,7 @@ def check_KaLP_metis(
 
     if kalp_graphchecker_path is None:
         env_dict = dotenv_values(".env")
-        assert "KALP_PATH" not in env_dict, "No KALP_PATH environment variable set"
+        assert "KALP_PATH" in env_dict, "No KALP_PATH environment variable set"
         kalp_graphchecker_path = env_dict["KALP_PATH"] + "/graphchecker"
 
     result = subprocess.run(
@@ -141,7 +142,7 @@ def run_KaLP_with_start_and_target(
 
     if kalp_path is None:
         env_dict = dotenv_values(".env")
-        assert "KALP_PATH" not in env_dict, "No KALP_PATH environment variable set"
+        assert "KALP_PATH" in env_dict, "No KALP_PATH environment variable set"
         kalp_path = env_dict["KALP_PATH"] + "/kalp"
 
     command = [
@@ -237,6 +238,8 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
 
 
 def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
+    Path("kalp_files").mkdir(parents=True, exist_ok=True)
+
     export_KaLP_metis("kalp_files/temp.graph", graph)
     result = check_KaLP_metis("kalp_files/temp.graph")
 
@@ -249,9 +252,11 @@ def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
     return {"path": path, "run_time": runtime}
 
 if __name__ == "__main__":
-    random.seed(0)
-    np.random.seed(0)
-    G = gen_planted_path(10, 0.5)
+    print(dotenv_values(".env"))
+    # random.seed(0)
+    
+    # np.random.seed(0)
+    # G = gen_planted_path(10, 0.5)
 
     # # export_KaLP_metis("test.graph", G)
     # export_KaLP_metis_with_universal_nodes("test.graph", G)
@@ -273,5 +278,5 @@ if __name__ == "__main__":
 
     # print(stdout)
     # print(path)
-    print(solve_KaLP(G))
+    # print(solve_KaLP(G))
 

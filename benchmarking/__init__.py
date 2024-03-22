@@ -7,7 +7,7 @@ from longestpath import (
 	gen_average_degree_directed,
 	gen_erdos_reyni_directed)
 from longestpath.solvers import Solver
-from longestpath.utils import with_timeout
+from longestpath.utils import with_timeout, with_try_result
 import time
 import shutil
 
@@ -73,9 +73,9 @@ class Benchmark:
 		self.info_path = info_path
 
 		with open(self.info_path, "r") as info_file:
-			info = json.load(info_file)
-			self.solvers = [Solver.deserialise(solver_str) for solver_str in info["solvers"]]
-			self.graph_ids = [graph_id for graph_id, _ in info["graph_infos"].items()]
+			self.info = json.load(info_file)
+			self.solvers = [Solver.deserialise(solver_str) for solver_str in self.info["solvers"]]
+			self.graph_ids = [graph_id for graph_id, _ in self.info["graph_infos"].items()]
 		
 		self.graphs = []
 		
@@ -89,20 +89,20 @@ class Benchmark:
 
 		results_path = os.path.join(self.benchmark_path, "results.json")
 
-		for graph_id, graph in self.graphs:
-			# Load results.json
-			if os.path.exists(results_path):
-				with open(results_path, "r") as f:
-					results = json.load(f)
-					assert(type(results) == list)
-			else:
-				with open(results_path, "w") as f:
-					# Put an empty results.json file there
-					json.dump([], f)
-				results = []
-			
-			# Run benchmark
-			for solver_index, solver in enumerate(self.solvers):
+		# Load results.json
+		if os.path.exists(results_path):
+			with open(results_path, "r") as f:
+				results = json.load(f)
+				assert(type(results) == list)
+		else:
+			with open(results_path, "w") as f:
+				# Put an empty results.json file there
+				json.dump([], f)
+			results = []
+
+		# Run benchmark
+		for solver_index, solver in enumerate(self.solvers):
+			for graph_id, graph in self.graphs:
 				existing_list = [
 					result for result in results 
 						if result["graph_id"] == graph_id and result["solver"] == solver_index
@@ -122,7 +122,7 @@ class Benchmark:
 
 				try:
 					tick = time.perf_counter()
-					result = with_timeout(timeout, default=None)(solver.run)(graph)
+					result = with_timeout(timeout, default=None)(with_try_result(solver.run))(graph)
 				except KeyboardInterrupt:
 					# Will stop after writing results
 					interrupted = True
@@ -138,8 +138,6 @@ class Benchmark:
 					print("❌ (timeout)")
 				elif "failure" in result:
 					print(f'❌ ({result["failure"]})')
-					if "run_time" not in result:
-						result["run_time"] = timeout
 				else:
 					assert("run_time" in result)
 					assert("path" in result)
@@ -171,7 +169,8 @@ class Benchmark:
 def new_random_benchmark(
 		params_list: List[RandomParams],
 		solvers: List[Solver],
-		override_benchmark_path: str | None = None) -> Benchmark:
+		override_benchmark_path: str | None = None,
+		params_code: str | None = None) -> Benchmark:
 
 	
 	if override_benchmark_path:
@@ -221,11 +220,14 @@ def new_random_benchmark(
 		
 	info_path = os.path.join(benchmark_path, "info.json")
 	with open(info_path, "w") as info_file:
-		json.dump({
+		info = {
 			"type": "random",
 			"solvers": [m.serialise() for m in solvers],
 			"graph_infos": graph_infos,
-		}, info_file, indent=2)
+		}
+		if params_code is not None:
+			info["params_code"] = params_code
+		json.dump(info, info_file, indent=2)
 
 	return Benchmark(benchmark_path, graphs_path, info_path)
 

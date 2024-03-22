@@ -6,12 +6,11 @@ from typing import Literal
 import pathlib
 from ..solveresult import SolveResult
 
-brute_path = pathlib.Path(__file__).parent.joinpath("brute")
+brute_path = pathlib.Path(__file__).parent.joinpath("brute.exe")
 
 Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
 def solve(graph: StandardGraph, method: Method, progressfile: str | None = None) -> SolveResult:
-
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
 
