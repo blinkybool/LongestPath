@@ -3,10 +3,6 @@ import numpy as np
 from .gen import *
 from .visualize import *
 
-from .qubo import doit
-
-doit()
-
 # random.seed(3)
 # np.random.seed(3)
 

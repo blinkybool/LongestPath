@@ -6,14 +6,11 @@ from longestpath import gen_average_degree_directed, gen_planted_path, StandardG
 from collections import defaultdict
 import time
 
+def generate_qubo(graph: StandardGraph, max_length_path: int | None = None):
 
-def doit():
-
-	N = 100
+	N = graph.vertices
 	M = N
 	P = -(M+1)
-
-	graph = gen_average_degree_directed(100, 5)
 
 	offset = 0
 	Q = defaultdict(int)
@@ -62,7 +59,10 @@ def doit():
 
 	for m in range(M):
 		for v in range(N):
-			Q[((m,N),(m+1,v))] = P
+			Q[((m,N),(m+1,v))] += P
+
+	# qubo = {(Binary(f"{x}{y}"), Binary(f"{a}{b}")): value for ((x,y), (a,b)), value in Q.items()}
+	# bqm.from_qubo(qubo, offset)
 
 	end = time.time()
 
