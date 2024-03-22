@@ -10,6 +10,7 @@ from longestpath.solvers import Solver
 from longestpath.utils import with_timeout, with_try_result
 import time
 import shutil
+from pathlib import Path
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -165,6 +166,45 @@ class Benchmark:
 			results = json.load(f)
 
 		return results
+		
+def setup_benchmark(graphs_to_write, info, benchmark_path = None):
+	# If the benchmark_path is None we use the default path: benchmarks/benchmark-[DATE]
+	if not benchmark_path:
+		if not os.path.exists("./benchmarks"):
+			os.mkdir("./benchmarks")
+		if not os.path.isdir("./benchmarks"):
+			raise RuntimeError("Failed to make ./benchmarks folder")
+		
+		datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
+		benchmark_path = os.path.join("./benchmarks", f"benchmark-{datetime_str}")
+	
+	# If a benchmark with this name already exists we append (n) for some n.
+	# We support at most 100 of such duplicates for now.
+	if os.path.exists(benchmark_path):
+		for i in range(1,100):
+			if not os.path.exists(benchmark_path + f"({i})"):
+				benchmark_path += f"({i})"
+				break
+		else:
+			raise FileExistsError(f"Too many files of this name: {str(benchmark_path)}")
+
+	# Create the benchmark and the graphs folders
+	graphs_path = os.path.join(benchmark_path, "graphs")
+	Path(benchmark_path).mkdir(parents=True)
+	os.mkdir(graphs_path)
+
+	# Write insert the graph files into the graphs folder
+	for graph_id, graph in graphs_to_write:
+		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
+			graph_file.write(str(graph))
+
+	# Create the info.json file
+	info_path = os.path.join(benchmark_path, "info.json")
+	with open(info_path, "w") as info_file:
+		json.dump(info, info_file, indent=2)
+
+	return Benchmark(benchmark_path, graphs_path, info_path)
+
 
 def new_random_benchmark(
 		params_list: List[RandomParams],
@@ -172,26 +212,10 @@ def new_random_benchmark(
 		override_benchmark_path: str | None = None,
 		params_code: str | None = None) -> Benchmark:
 
-	
-	if override_benchmark_path:
-		benchmark_path = override_benchmark_path
-	else:
-		if not os.path.exists("./benchmarks"):
-			os.mkdir("./benchmarks")
-		if not os.path.isdir("./benchmarks"):
-			raise RuntimeError("Failed to make ./benchmarks folder")
-		
-		datetime_str = datetime.now().strftime('%Y-%m-%d--%H-%M-%S')
-		benchmark_path = os.path.join("./benchmarks", f"random-{datetime_str}")
-
-	graphs_path = os.path.join(benchmark_path, "graphs")
-	
-	if os.path.exists(benchmark_path):
-		raise FileExistsError(f"Benchmark already exists: {str(benchmark_path)}")
-
 	graphs_to_write = []
 	graph_infos = {}
 
+	# Generate random graphs
 	for i, params in enumerate(params_list):
 		graph_id = str(i)
 		if not params.directed:
@@ -211,25 +235,15 @@ def new_random_benchmark(
 		graphs_to_write.append((graph_id, graph))
 		graph_infos[graph_id] = params.serialise()
 
-	os.mkdir(benchmark_path)
-	os.mkdir(graphs_path)
+	# Setup info for info.json
+	info = {
+		"type": "random",
+		"solvers": [m.serialise() for m in solvers],
+		"graph_infos": graph_infos,
+	}
+	if params_code is not None: info["params_code"] = params_code
 
-	for graph_id, graph in graphs_to_write:
-		with open(os.path.join(graphs_path, f"{graph_id}.txt"), "w") as graph_file:
-			graph_file.write(str(graph))
-		
-	info_path = os.path.join(benchmark_path, "info.json")
-	with open(info_path, "w") as info_file:
-		info = {
-			"type": "random",
-			"solvers": [m.serialise() for m in solvers],
-			"graph_infos": graph_infos,
-		}
-		if params_code is not None:
-			info["params_code"] = params_code
-		json.dump(info, info_file, indent=2)
-
-	return Benchmark(benchmark_path, graphs_path, info_path)
+	return setup_benchmark(graphs_to_write, info, override_benchmark_path)
 
 def new_graph_file_benchmark(
 		graph_path: str,
