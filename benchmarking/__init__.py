@@ -165,7 +165,7 @@ class Benchmark:
 		with open(results_path, "r") as f:
 			results = json.load(f)
 
-		return 
+		return results
 		
 def setup_benchmark(graphs_to_write, info, benchmark_path = None):
 	# If the benchmark_path is None we use the default path: benchmarks/benchmark-[DATE]
