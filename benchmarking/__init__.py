@@ -89,20 +89,20 @@ class Benchmark:
 
 		results_path = os.path.join(self.benchmark_path, "results.json")
 
-		for graph_id, graph in self.graphs:
-			# Load results.json
-			if os.path.exists(results_path):
-				with open(results_path, "r") as f:
-					results = json.load(f)
-					assert(type(results) == list)
-			else:
-				with open(results_path, "w") as f:
-					# Put an empty results.json file there
-					json.dump([], f)
-				results = []
-			
-			# Run benchmark
-			for solver_index, solver in enumerate(self.solvers):
+		# Load results.json
+		if os.path.exists(results_path):
+			with open(results_path, "r") as f:
+				results = json.load(f)
+				assert(type(results) == list)
+		else:
+			with open(results_path, "w") as f:
+				# Put an empty results.json file there
+				json.dump([], f)
+			results = []
+
+		# Run benchmark
+		for solver_index, solver in enumerate(self.solvers):
+			for graph_id, graph in self.graphs:
 				existing_list = [
 					result for result in results 
 						if result["graph_id"] == graph_id and result["solver"] == solver_index
