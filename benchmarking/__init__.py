@@ -73,9 +73,9 @@ class Benchmark:
 		self.info_path = info_path
 
 		with open(self.info_path, "r") as info_file:
-			info = json.load(info_file)
-			self.solvers = [Solver.deserialise(solver_str) for solver_str in info["solvers"]]
-			self.graph_ids = [graph_id for graph_id, _ in info["graph_infos"].items()]
+			self.info = json.load(info_file)
+			self.solvers = [Solver.deserialise(solver_str) for solver_str in self.info["solvers"]]
+			self.graph_ids = [graph_id for graph_id, _ in self.info["graph_infos"].items()]
 		
 		self.graphs = []
 		
@@ -169,7 +169,8 @@ class Benchmark:
 def new_random_benchmark(
 		params_list: List[RandomParams],
 		solvers: List[Solver],
-		override_benchmark_path: str | None = None) -> Benchmark:
+		override_benchmark_path: str | None = None,
+		params_code: str | None = None) -> Benchmark:
 
 	
 	if override_benchmark_path:
@@ -219,11 +220,14 @@ def new_random_benchmark(
 		
 	info_path = os.path.join(benchmark_path, "info.json")
 	with open(info_path, "w") as info_file:
-		json.dump({
+		info = {
 			"type": "random",
 			"solvers": [m.serialise() for m in solvers],
 			"graph_infos": graph_infos,
-		}, info_file, indent=2)
+		}
+		if params_code is not None:
+			info["params_code"] = params_code
+		json.dump(info, info_file, indent=2)
 
 	return Benchmark(benchmark_path, graphs_path, info_path)
 
