@@ -18,7 +18,7 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
         return result
 
 def handler(queue, func, args, kwargs):
-    queue.put(func(*args, *kwargs))
+    queue.put(func(*args, **kwargs))
 
 def with_timeout(seconds, default=None):
     """
