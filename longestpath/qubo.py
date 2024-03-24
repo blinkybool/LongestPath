@@ -1,6 +1,6 @@
 from pyqubo import Binary, Array, Num
 import numpy as np
-from dimod import ExactSolver, BinaryQuadraticModel
+from dimod import ExactSolver, BinaryQuadraticModel, RandomSampler
 import neal
 from typing import List
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, complete_graph
@@ -17,7 +17,7 @@ def update(bqm, exp, scalar):
 def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	if max_length_path is None:
-		max_length_path = graph.vertices
+		max_length_path = graph.vertices-1
 
 	# Variable names closer to mathematical expressions
 	N = graph.vertices
@@ -31,8 +31,14 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	bqm = BinaryQuadraticModel('BINARY')
 
-	for block in V:
-		update(bqm, (sum(block) - Num(1))**2, P)
+	# for block in V:
+	# 	update(bqm, (sum(block) - Num(1))**2, P)
+	
+	for m in range(M+1):
+		for u in range(N+1):
+			for v in range(N+1):
+				if u != v:
+					bqm.add_quadratic(X[m][u], X[m][v], P)
 
 	for v in range(N):
 		for m in range(M):
@@ -78,11 +84,12 @@ def valid_terminal_path(graph: StandardGraph, terminal_path: List[int]):
 
 if __name__ == "__main__":
 
-	graph = gen_average_degree_directed(10, 2)
+	graph = gen_average_degree_directed(4, 2)
 	
 	bqm, X = generate_qubo_bqm(graph)
 
-	sa = neal.SimulatedAnnealingSampler()
+	# sa = neal.SimulatedAnnealingSampler()
+	sa = RandomSampler()
 
 	start = time.perf_counter()
 	def interrupt():
@@ -93,15 +100,16 @@ if __name__ == "__main__":
 	
 	bqm.scale(-1)
 
-	sampleset = sa.sample(bqm, num_reads= 100, num_sweeps= 1000, interrupt_function= interrupt)
+	sampleset = sa.sample(bqm, num_reads= 100000)
+	# sampleset = sa.sample(bqm, num_reads= 100000, interrupt_function= interrupt)
 
 	best_sample = sampleset.first
-	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample[X[m][v]] == 1] for m in range(graph.vertices+1)]
+	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample[X[m][v]] == 1] for m in range(graph.vertices)]
 
 	print(f"Reward: {-best_sample.energy}")
 	print(multi_path)
 
-	for m in range(graph.vertices+1):
+	for m in range(graph.vertices):
 		if len(multi_path[m]) < 1:
 			print(f"Path broken at step {m}")
 			exit(0)
