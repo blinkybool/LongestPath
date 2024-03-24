@@ -18,12 +18,22 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
         return result
 
 def handler(queue, func, args, kwargs):
-    queue.put(func(*args, **kwargs))
+    '''
+    Handle exceptions here - it's difficult to handled them elsewhere
+    '''
+    try:
+        result = func(*args, **kwargs)
+    except Exception as e:
+        result = {
+            "failure" : repr(e)
+        }
+    queue.put(result)
 
 def with_timeout(seconds, default=None):
     """
     Calls any function with timeout after 'seconds'.
     If a timeout occurs, 'action' will be returned or called if it is a function-like object.
+    Handles exceptions by returning dictionary {"failure" : repr(e)}
     """
 
     def decorator(func):
@@ -75,14 +85,14 @@ def with_time(func):
 
     return wrapped
 
-def with_try_result(func):
-    def wrapped(*args, **kwargs):
-        try:
-            result = func(*args, **kwargs)
-        except Exception as e:
-            result = {
-                "failure" : repr(e)
-            }
-        return result
+# def with_try_result(func):
+#     def wrapped(*args, **kwargs):
+#         try:
+#             result = func(*args, **kwargs)
+#         except Exception as e:
+#             result = {
+#                 "failure" : repr(e)
+#             }
+#         return result
 
-    return wrapped
+#     return wrapped
