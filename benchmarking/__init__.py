@@ -5,6 +5,7 @@ from longestpath import (
 	StandardGraph,
 	gen_num_edges,
 	gen_average_degree_directed,
+	gen_density,
 	gen_erdos_reyni_directed)
 from longestpath.solvers import Solver
 from longestpath.utils import with_timeout
@@ -17,6 +18,7 @@ class RandomParams(NamedTuple):
 	num_vertices: int
 	num_edges: Optional[int] = None
 	average_degree: Optional[int] = None
+	density: Optional[float] = None
 	p: Optional[float] = None
 
 	def serialise(self):
@@ -24,6 +26,18 @@ class RandomParams(NamedTuple):
 		To deserialise d = params.serialise(), do RandomParams(**d)
 		'''
 		return {k:v for k,v in self._asdict().items() if v is not None}
+	
+	def gen_graph(self):
+		if self.num_edges is not None:
+			return gen_num_edges(self.num_vertices, self.num_edges)
+		elif self.p is not None:
+			return gen_erdos_reyni_directed(self.num_vertices, self.p)
+		elif self.average_degree is not None:
+			return gen_average_degree_directed(self.num_vertices, self.average_degree)
+		elif self.density is not None:
+			return gen_density(self.num_vertices, self.density, self.directed)
+		else:
+			raise RuntimeError(f"Invalid params: {self}")
 
 Result = TypedDict('Result',
 	graph_id=str,
@@ -222,16 +236,7 @@ def new_random_benchmark(
 			# Unclear what the undirected graph format is.
 			raise RuntimeError("Undirected graphs not properly handled")
 
-		graph: StandardGraph
-		if params.num_edges:
-			graph = gen_num_edges(params.num_vertices, params.num_edges)
-		elif params.p:
-			graph = gen_erdos_reyni_directed(params.num_vertices, params.p)
-		elif params.average_degree:
-			graph = gen_average_degree_directed(params.num_vertices, params.average_degree)
-		else:
-			raise RuntimeError(f"Invalid params: {params}")
-
+		graph = params.gen_graph()
 		graphs_to_write.append((graph_id, graph))
 		graph_infos[graph_id] = params.serialise()
 

@@ -19,7 +19,7 @@ CFLAGS += $(OPTIMIZATION)
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-brute.exe: $(OBJ)
+brute: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean

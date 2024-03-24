@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 from ..gen import StandardGraph
 import subprocess
+import platform
 from enum import Enum
 from typing import Literal
 import pathlib
 from ..solveresult import SolveResult
 
-brute_path = pathlib.Path(__file__).parent.joinpath("brute.exe")
+if platform.system() == "Windows":
+	brute_path = pathlib.Path(__file__).parent.joinpath("brute.exe")
+else:
+	brute_path = pathlib.Path(__file__).parent.joinpath("brute")
 
 Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
