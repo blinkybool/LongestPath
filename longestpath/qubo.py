@@ -5,7 +5,6 @@ import neal
 from typing import List
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, complete_graph
 import itertools
-from collections import defaultdict
 from longestpath import brute
 import time
 
@@ -43,15 +42,15 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 	edge_set = set(graph.edges)
 
 	for m in range(M):
-		for i in range(N):
-			for j in range(N):
-				if i == j:
+		for u in range(N):
+			for v in range(N):
+				if u == v:
 					continue
 				
-				if (i,j) in edge_set:
-					bqm.add_quadratic(X[m][i], X[m+1][j], 1)
+				if (u,v) in edge_set:
+					bqm.add_quadratic(X[m][u], X[m+1][v], 1)
 				else:
-					bqm.add_quadratic(X[m][i], X[m+1][j], P)
+					bqm.add_quadratic(X[m][u], X[m+1][v], P)
 
 	for m in range(M):
 		for v in range(N):
