@@ -28,6 +28,15 @@ def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
 	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
 	return StandardGraph(num_vertices, random_edges)
 
+def gen_density(num_vertices: int, density: float, directed: bool = True) -> StandardGraph:
+	if not directed:
+		raise NotImplementedError()
+	assert 0 <= density and density <= 1
+	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
+	num_edges = round(density * len(all_edges))
+	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
+	return StandardGraph(num_vertices, random_edges)
+
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
 	"""
 	Generates a random graph such that its longest path consits of exactly `path_length` many nodes.

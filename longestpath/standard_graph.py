@@ -124,6 +124,18 @@ class StandardGraph:
 		self.edges += [(s, v) for v in range(self.vertices)]
 		self.edges += [(v, t) for v in range(self.vertices)]
 
+	def valid_path(self, path: List[int]):
+		for v in path:
+			if type(v) != int or v < 0 or v >= self.vertices:
+				return False, f"Bad vertex, {v}"
+		
+		for (u,v) in zip(path, path[1:]):
+			if (u,v) not in self.edges:
+				return False, f"Bad edge {u} -> {v}"
+
+		return True, ""
+
+
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(
 		vertices,

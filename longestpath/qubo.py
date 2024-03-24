@@ -1,10 +1,11 @@
 from pyqubo import Binary, Array, Num
 import numpy as np
-from dimod import ExactSolver, BinaryQuadraticModel
+from dimod import ExactSolver, BinaryQuadraticModel, RandomSampler
 import neal
+from typing import List
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, complete_graph
 import itertools
-from collections import defaultdict
+from longestpath import brute
 import time
 
 # Like bqm.update but with a pyqubo exp and a scalar
@@ -16,7 +17,7 @@ def update(bqm, exp, scalar):
 def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	if max_length_path is None:
-		max_length_path = graph.vertices
+		max_length_path = graph.vertices-1
 
 	# Variable names closer to mathematical expressions
 	N = graph.vertices
@@ -30,8 +31,14 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	bqm = BinaryQuadraticModel('BINARY')
 
-	for block in V:
-		update(bqm, (sum(block) - Num(1))**2, P)
+	# for block in V:
+	# 	update(bqm, (sum(block) - Num(1))**2, P)
+	
+	for m in range(M+1):
+		for u in range(N+1):
+			for v in range(N+1):
+				if u != v:
+					bqm.add_quadratic(X[m][u], X[m][v], P)
 
 	for v in range(N):
 		for m in range(M):
@@ -41,15 +48,15 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 	edge_set = set(graph.edges)
 
 	for m in range(M):
-		for i in range(N):
-			for j in range(N):
-				if i == j:
+		for u in range(N):
+			for v in range(N):
+				if u == v:
 					continue
 				
-				if (min(i,j), max(i,j)) in edge_set:
-					bqm.add_quadratic(X[m][i], X[m+1][j], 1)
+				if (u,v) in edge_set:
+					bqm.add_quadratic(X[m][u], X[m+1][v], 1)
 				else:
-					bqm.add_quadratic(X[m][i], X[m+1][j], P)
+					bqm.add_quadratic(X[m][u], X[m+1][v], P)
 
 	for m in range(M):
 		for v in range(N):
@@ -57,16 +64,32 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	return bqm, X
 
+def valid_terminal_path(graph: StandardGraph, terminal_path: List[int]):
+	'''
+	A terminal path is of the form v1, v2, ..., vn, N, N, N
+	where the vi form a valid path, and N = graph.vertices
+	(there should not be another valid vertex after the first N)
+	'''
+
+	N = graph.vertices
+
+	path = list(itertools.takewhile(lambda v: v < graph.vertices, terminal_path))
+	Ntail = itertools.dropwhile(lambda v: v < graph.vertices, terminal_path)
+
+	for v in Ntail:
+		if v != N:
+			return False, f"Path has invalid edge N={N} -> {v}"
+	
+	return graph.valid_path(path)
+
 if __name__ == "__main__":
 
-	graph = gen_average_degree_directed(10, 2)
-	# Make it undirected
-	inv_edges = [(j,i) for (i, j) in graph.edges]
-	graph.edges = list(set(graph.edges + inv_edges))
+	graph = gen_average_degree_directed(4, 2)
 	
 	bqm, X = generate_qubo_bqm(graph)
 
-	sa = neal.SimulatedAnnealingSampler()
+	# sa = neal.SimulatedAnnealingSampler()
+	sa = RandomSampler()
 
 	start = time.perf_counter()
 	def interrupt():
@@ -77,21 +100,34 @@ if __name__ == "__main__":
 	
 	bqm.scale(-1)
 
-	sampleset = sa.sample(bqm, num_reads= 100, num_sweeps= 1000, interrupt_function= interrupt)
+	sampleset = sa.sample(bqm, num_reads= 100000)
+	# sampleset = sa.sample(bqm, num_reads= 100000, interrupt_function= interrupt)
 
 	best_sample = sampleset.first
-	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample[X[m][v]] == 1] for m in range(graph.vertices+1)]
-	
-	# Not actually a comprehensive check
-	if not all(len(multi_path[m]) == 1 for m in range(graph.vertices+1)):
-		print("fail")
+	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample[X[m][v]] == 1] for m in range(graph.vertices)]
 
-	path = list(itertools.takewhile(lambda v: v < graph.vertices, [vertices[0] for vertices in multi_path]))
+	print(f"Reward: {-best_sample.energy}")
+	print(multi_path)
 
-	print(-best_sample.energy, path)
-
-	for (i,j) in zip(path, path[1:]):
-		if (i,j) not in graph.edges:
-			print(f"bad path, no edge {i} {j}")
+	for m in range(graph.vertices):
+		if len(multi_path[m]) < 1:
+			print(f"Path broken at step {m}")
 			exit(0)
-	print("valid path")
+		if len(multi_path[m]) > 1:
+			print(f"Path non-deterministic at step {m}: {multi_path[m]}")
+			exit(0)
+
+	terminal_path = [vertices[0] for vertices in multi_path]
+	valid, msg = valid_terminal_path(graph, terminal_path)
+	if not valid:
+		print(msg)
+		exit(0)
+
+	path = list(itertools.takewhile(lambda v: v < graph.vertices, terminal_path))
+
+	print(path)
+	
+	result = brute.solve(graph, "BRUTE_FORCE_COMPLETE")
+	if len(result["path"]) > len(path):
+		print("Path not longest:")
+		print(f"Longest path: {result['path']}")
