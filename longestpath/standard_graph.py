@@ -135,6 +135,9 @@ class StandardGraph:
 
 		return True, ""
 
+	def average_degree(self):
+		return len(self.edges) / (2 * self.vertices)
+
 
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(
