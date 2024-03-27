@@ -12,6 +12,7 @@ from longestpath.utils import with_timeout
 import time
 import shutil
 from pathlib import Path
+import pandas as pd
 
 class RandomParams(NamedTuple):
 	directed: bool
@@ -180,6 +181,22 @@ class Benchmark:
 			results = json.load(f)
 
 		return results
+
+	def get_results_dataframe(self):
+		df = pd.DataFrame(self.results())
+		solver_names = [str(solver) for solver in self.solvers]
+		df["solver_name"] = df["solver"].apply(lambda i: solver_names[i])
+		return df
+
+	def get_graph_dataframe(self):
+		df = pd.DataFrame([{"graph_id" : id, "vertices": graph.vertices, "edges": len(graph.edges)} for id, graph in self.graphs])
+		df["average_out_degree"] = df["edges"] / df["vertices"]
+		df_infos = pd.DataFrame(self.info["graph_infos"]).T.add_suffix("_spec")
+
+		return pd.merge(df, df_infos, left_on="graph_id", right_index=True, suffixes=("", "_spec"))
+
+	def get_dataframe(self):
+		return pd.merge(self.get_results_dataframe(), self.get_graph_dataframe(), on="graph_id")
 		
 def setup_benchmark(graphs_to_write, info, benchmark_path = None):
 	# If the benchmark_path is None we use the default path: benchmarks/benchmark-[DATE]
