@@ -161,17 +161,11 @@ def run_KaLP_with_start_and_target(
         command.append(f"--partition_configuration={partition_configuration}")
 
     tic = time.perf_counter()
-    p = subprocess.Popen(
+    result = subprocess.run(
         command, 
         stdout=subprocess.PIPE, 
-        text=True,
-
+        text=True
     )
-    try:
-        result = p.communicate()
-    except multiprocessing.context.TimeoutError as e:
-        print('qqqqqqqq')
-
     toc = time.perf_counter()
 
     if result.returncode != 0:
