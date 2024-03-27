@@ -250,6 +250,33 @@ def new_random_benchmark(
 
 	return setup_benchmark(graphs_to_write, info, override_benchmark_path)
 
+
+def new_benchmark(
+		graphs: List[StandardGraph],
+		solvers: List[Solver],
+		override_benchmark_path: str | None = None,
+		params_code: str | None = None) -> Benchmark:
+
+	graphs_to_write = []
+	graph_infos = {}
+
+	# Generate random graphs
+	for i, graph in enumerate(graphs):
+		graph_id = str(i)
+		graphs_to_write.append((graph_id, graph))
+		graph_infos[graph_id] = {}
+
+	# Setup info for info.json
+	info = {
+		"type": "custom",
+		"solvers": [m.serialise() for m in solvers],
+		"graph_infos": graph_infos
+	}
+	if params_code is not None: info["params_code"] = params_code
+
+	return setup_benchmark(graphs_to_write, info, override_benchmark_path)
+
+
 def new_graph_file_benchmark(
 		graph_path: str,
 		solvers: List[Solver],
