@@ -1,5 +1,15 @@
 import multiprocessing
+import os
+import random
+import signal
 import time
+
+import numpy as np
+import psutil
+
+from longestpath import brute
+from longestpath.gen import gen_num_edges
+from longestpath.kalp import solve_KaLP
 
 def call(fun, args, kwargs):
     return fun(*args, **kwargs)
@@ -17,12 +27,12 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
 
         return result
 
-def handler(queue, func, args, kwargs):
+def handler(queue, processes, func, args, kwargs):
     '''
     Handle exceptions here - it's difficult to handled them elsewhere
     '''
     try:
-        result = func(*args, **kwargs)
+        result = func(processes, *args, **kwargs)
     except Exception as e:
         result = {
             "failure" : repr(e)
@@ -39,9 +49,16 @@ def with_timeout(seconds, default=None):
     def decorator(func):
         def wraps(*args, **kwargs):
             q = multiprocessing.Queue()
-            p = multiprocessing.Process(target=handler, args=(q, func, args, kwargs))
+            processes = multiprocessing.Queue()
+            p = multiprocessing.Process(target=handler, args=(q, processes, func, args, kwargs))
             p.start()
             p.join(timeout=seconds)
+
+            while not processes.empty():
+                pid = processes.get_nowait()
+                if psutil.pid_exists(pid):
+                    os.kill(pid, signal.SIGTERM)
+
             if p.is_alive():
                 p.terminate()
                 p.join()
@@ -96,3 +113,12 @@ def with_time(func):
 #         return result
 
 #     return wrapped
+
+
+if __name__ == "__main__":
+    random.seed(0)
+    np.random.seed(0)
+    G = gen_num_edges(10, 40)
+    # print(with_timeout(2)(brute.solve)(G, "FAST_BOUND"))
+    # print(with_timeout(2)(solve_KaLP)(G))
+    # run_with_timeout(solve_KaLP, [G], timeout=2)

@@ -131,7 +131,8 @@ def run_KaLP_with_start_and_target(
         threads=None,
         steps=None,
         partition_configuration=None,
-        kalp_path = None
+        kalp_path = None,
+        process_queue = None
     ):
     """
     Runs KaLP on the file specified by `path`. 
@@ -161,22 +162,28 @@ def run_KaLP_with_start_and_target(
         command.append(f"--partition_configuration={partition_configuration}")
 
     tic = time.perf_counter()
-    result = subprocess.run(
+    process = subprocess.Popen(
         command, 
         stdout=subprocess.PIPE, 
         text=True
     )
+
+    if process_queue != None:
+        process_queue.put(process.pid)
+
+    stdout, err = process.communicate()
+
     toc = time.perf_counter()
 
-    if result.returncode != 0:
+    if process.returncode != 0:
         print("result")
-        print(result)
+        print(process)
         print("stderr")
-        print(result.stderr)
+        print(process.stderr)
         raise RuntimeError("Executable exited with error.")
 
 
-    lines = result.stdout.splitlines()
+    lines = stdout.splitlines()
 
     path = []
 
@@ -187,7 +194,7 @@ def run_KaLP_with_start_and_target(
         else:
             break
 
-    return path, result.stdout, toc - tic
+    return path, stdout, toc - tic
 
 def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
     """
@@ -206,7 +213,7 @@ def run_KaLP_with_universal_nodes(path: str, *args, **kwargs):
     else:
         return [], stdout
 
-def run_KaLP_universal(file_path: str, *args, **kwargs):
+def run_KaLP_universal(file_path: str, *args, process_queue=None, **kwargs):
     """
     Runs KaLP on each pair of start and target nodes in order to find the longest path in the entire graph.
     It returns the total running time of KaLP. 
@@ -228,7 +235,9 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
 
     for s in range(nr_vertices):
         for t in range(0, s):
-            path, stdout, dt = run_KaLP_with_start_and_target(file_path, s, t, *args, **kwargs)
+            path, stdout, dt = run_KaLP_with_start_and_target(
+                file_path, s, t, *args, process_queue=process_queue, **kwargs
+            )
             runtime += dt
 
             if len(path) > len(longest_path):
@@ -237,7 +246,7 @@ def run_KaLP_universal(file_path: str, *args, **kwargs):
     return longest_path, runtime
 
 
-def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
+def solve_KaLP(process_queue, graph: StandardGraph, *args, **kwargs) -> SolveResult:
     Path("kalp_files").mkdir(parents=True, exist_ok=True)
 
     export_KaLP_metis("kalp_files/temp.graph", graph)
@@ -247,7 +256,7 @@ def solve_KaLP(graph: StandardGraph, *args, **kwargs) -> SolveResult:
         print(result)
         raise RuntimeError("Incorrect graph format detected by KaLP")
 
-    path, runtime = run_KaLP_universal("kalp_files/temp.graph", *args, **kwargs)
+    path, runtime = run_KaLP_universal("kalp_files/temp.graph", *args, process_queue = process_queue, **kwargs)
 
     return {"path": path, "run_time": runtime}
 

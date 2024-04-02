@@ -14,7 +14,7 @@ else:
 
 Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
-def solve(graph: StandardGraph, method: Method, progressfile: str | None = None) -> SolveResult:
+def solve(process_queue, graph: StandardGraph, method: Method, progressfile: str | None = None) -> SolveResult:
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
 
@@ -24,12 +24,19 @@ def solve(graph: StandardGraph, method: Method, progressfile: str | None = None)
 		args.append("-p")
 		args.append(progressfile)
 
-	process = subprocess.run(
+	process = subprocess.Popen(
 		args, 
 		executable=brute_path, 
-		input=str(graph), 
-		capture_output=True,
 		text=True, 
+		stdout=subprocess.PIPE,
+		stdin=subprocess.PIPE,
+		stderr=subprocess.PIPE,
+	)
+
+	process_queue.put(process.pid)
+	
+	output, err = process.communicate(
+		input=str(graph)
 	)
 
 	if process.returncode < 0:
@@ -44,7 +51,7 @@ def solve(graph: StandardGraph, method: Method, progressfile: str | None = None)
 	
 	data = {}
 	
-	for line in process.stdout.split('\n'):
+	for line in output.split('\n'):
 		parts = line.strip().split(':')
 		if len(parts) == 2:
 			key, value = parts
