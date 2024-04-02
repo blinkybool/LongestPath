@@ -31,15 +31,10 @@ def generate_qubo_bqm(graph: StandardGraph, max_length_path: int | None = None):
 
 	bqm = BinaryQuadraticModel('BINARY')
 
-	# for block in V:
-	# 	update(bqm, (sum(block) - Num(1))**2, P)
+	# Exactly one vertex at each time-step block
+	for block in V:
+		update(bqm, (sum(block) - Num(1))**2, P)
 	
-	for m in range(M+1):
-		for u in range(N+1):
-			for v in range(N+1):
-				if u != v:
-					bqm.add_quadratic(X[m][u], X[m][v], P)
-
 	for v in range(N):
 		for m in range(M):
 			for after_m in range(m+1, M+1):
@@ -104,7 +99,7 @@ if __name__ == "__main__":
 	# sampleset = sa.sample(bqm, num_reads= 100000, interrupt_function= interrupt)
 
 	best_sample = sampleset.first
-	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample[X[m][v]] == 1] for m in range(graph.vertices)]
+	multi_path = [[v for v in range(graph.vertices+1) if best_sample.sample.get(X[m][v], 0) == 1] for m in range(graph.vertices)]
 
 	print(f"Reward: {-best_sample.energy}")
 	print(multi_path)
