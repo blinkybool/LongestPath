@@ -111,7 +111,7 @@ NeighboursGraph *read_graph(bool undirected) {
 	return graph;
 }
 
-inline void log_found_path(FILE *prog, VertArray *path) {
+static inline void log_found_path(FILE *prog, VertArray *path) {
 	fprintf(prog, "LOG: Found path %d -> %d (length %d)\n", path->elems[0], path->elems[1], path->count-1);
 	fprintf(prog, "path:");
 	FOREACH_ARRAY(int, vertex, (*path), {
@@ -181,6 +181,7 @@ void longest_path_brute_force(VertArray *best_path, NeighboursGraph *graph, bool
 			if (len == 1) {
 				path_set[vertex] = 0;
 				vertex++;
+				if (vertex >= v) break;
 				path_set[vertex] = 1;
 				path[0] = vertex;
 				backtrack = false;
@@ -308,6 +309,7 @@ void longest_path_branch_and_bound(VertArray *best_path, NeighboursGraph *graph,
 			if (len == 1) {
 				path_set[vertex] = 0;
 				vertex++;
+				if (vertex >= v) break;
 				path_set[vertex] = 1;
 				path[0] = vertex;
 				backtrack = false;
