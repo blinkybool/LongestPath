@@ -246,7 +246,7 @@ def run_KaLP_universal(file_path: str, *args, process_queue=None, **kwargs):
     return longest_path, runtime
 
 
-def solve_KaLP(process_queue, graph: StandardGraph, *args, **kwargs) -> SolveResult:
+def solve_KaLP(graph: StandardGraph, *args, process_queue=None, **kwargs) -> SolveResult:
     Path("kalp_files").mkdir(parents=True, exist_ok=True)
 
     export_KaLP_metis("kalp_files/temp.graph", graph)

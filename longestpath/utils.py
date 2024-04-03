@@ -27,12 +27,14 @@ def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
 
         return result
 
-def handler(queue, processes, func, args, kwargs):
+def handler(queue, process_queue, func, args, kwargs):
     '''
     Handle exceptions here - it's difficult to handled them elsewhere
     '''
     try:
-        result = func(processes, *args, **kwargs)
+        assert "process_queue" not in kwargs
+        kwargs["process_queue"] = process_queue
+        result = func(*args, **kwargs)
     except Exception as e:
         result = {
             "failure" : repr(e)
@@ -49,13 +51,13 @@ def with_timeout(seconds, default=None):
     def decorator(func):
         def wraps(*args, **kwargs):
             q = multiprocessing.Queue()
-            processes = multiprocessing.Queue()
-            p = multiprocessing.Process(target=handler, args=(q, processes, func, args, kwargs))
+            process_queue = multiprocessing.Queue()
+            p = multiprocessing.Process(target=handler, args=(q, process_queue, func, args, kwargs))
             p.start()
             p.join(timeout=seconds)
 
-            while not processes.empty():
-                pid = processes.get_nowait()
+            while not process_queue.empty():
+                pid = process_queue.get_nowait()
                 if psutil.pid_exists(pid):
                     os.kill(pid, signal.SIGTERM)
 

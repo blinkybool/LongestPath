@@ -99,6 +99,12 @@ class Benchmark:
 			with open(os.path.join(self.graphs_path, f"{graph_id}.txt"), "r") as graph_file:
 				self.graphs.append((graph_id, StandardGraph.from_string(graph_file.read())))
 
+	def add_solver(self, solver: Solver):
+		self.solvers.append(solver)
+		self.info['solvers'] = [m.serialise() for m in self.solvers]
+		with open(self.info_path, "w") as info_file:
+			json.dump(self.info, info_file, indent=2)
+
 	def run(self,
 			timeout: float | None = None,
 			retryFailures: bool = False):
@@ -138,7 +144,10 @@ class Benchmark:
 
 				try:
 					tick = time.perf_counter()
-					result = with_timeout(timeout, default=None)(solver.run)(graph)
+					if timeout:
+						result = with_timeout(timeout, default=None)(solver.run)(graph)
+					else:
+						result = solver.run(graph)
 				except KeyboardInterrupt:
 					# Will stop after writing results
 					interrupted = True
