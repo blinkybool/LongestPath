@@ -14,7 +14,7 @@ else:
 
 Method = Literal['BRUTE_FORCE', 'BRANCH_N_BOUND', 'FAST_BOUND', 'BRUTE_FORCE_COMPLETE']
 
-def solve(process_queue, graph: StandardGraph, method: Method, progressfile: str | None = None) -> SolveResult:
+def solve(graph: StandardGraph, method: Method, progressfile: str | None = None, process_queue = None) -> SolveResult:
 	if not brute_path.exists():
 		raise FileNotFoundError("No brute executable found. Run `make`")
 

@@ -23,7 +23,7 @@ class Solver():
 		self.kwargs = kwargs
 
 	def run(self, process_queue, graph):
-		return solvers[self.name](process_queue, graph, *self.args, **self.kwargs)
+		return solvers[self.name](graph, *self.args, process_queue=process_queue, **self.kwargs)
 
 	def serialise(self):
 		return {
