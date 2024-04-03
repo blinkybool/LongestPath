@@ -200,6 +200,7 @@ class Benchmark:
 	
 	def solver_names(self):
 		return [str(solver) for solver in self.solvers]
+	
 		
 def setup_benchmark(graphs_to_write, info, benchmark_path = None):
 	# If the benchmark_path is None we use the default path: benchmarks/benchmark-[DATE]

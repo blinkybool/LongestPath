@@ -15,7 +15,7 @@ STATUS = {
 def var_solution_is_one(var):
 	return round(var.solution_value()) == 1
 
-def solve(graph: StandardGraph, max_path_length: int | None = None):
+def solve(graph: StandardGraph, max_path_length: int | None = None, process_queue = None):
 	
 	solver, variables = create_solver(graph, max_path_length=max_path_length)
 
