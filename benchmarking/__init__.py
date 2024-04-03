@@ -119,33 +119,26 @@ class Benchmark:
 		# Run benchmark
 		for solver_index, solver in enumerate(self.solvers):
 			for graph_id, graph in self.graphs:
-				existing_list = [
+				# Find the results that are already present in the file for this solver and this graph
+				existing_results = [
 					result for result in results 
 						if result["graph_id"] == graph_id and result["solver"] == solver_index
 				]
-				assert len(existing_list) in {0,1}, "Multiple results for same graph_id and solver"
-				if len(existing_list) == 1:
-					existing = existing_list[0]
-					if not ("failure" in existing and retryFailures):
+				assert len(existing_results) in {0,1}, "Multiple results for same graph_id and solver"
+
+				# If the previous result was a failure and retryFailures is enabled then we re-run the benchmark
+				# If however, there was no failure or retry failures is not enables we skip this benchmark
+				if len(existing_results) == 1:
+					existing_result = existing_results[0]
+					if not ("failure" in existing_result and retryFailures):
 						continue
 
 				print(f"graph: {graph_id}.txt, solver: {solver} ... ", end="")
 
+				# Run the benchmark
+				result, run_time, interrupted = self.run_single_benchmark(timeout, solver, graph)
 
-				interrupted = False
-				run_time = None
-				result = None
-
-				try:
-					tick = time.perf_counter()
-					result = with_timeout(timeout, default=None)(solver.run)(graph)
-				except KeyboardInterrupt:
-					# Will stop after writing results
-					interrupted = True
-					tock = time.perf_counter()
-					run_time = tock - tick
-
-
+				# Format the results
 				if result is None:
 					result = {
 						"failure": interrupted and "interrupted" or "timeout",
@@ -164,6 +157,7 @@ class Benchmark:
 				result["solver"] = solver_index
 				result["graph_id"] = graph_id
 
+				# Append the results to the list
 				results = [r for r in results if not (r["graph_id"] == graph_id and r["solver"] == solver_index)]
 				results.append(result)
 	
@@ -174,6 +168,22 @@ class Benchmark:
 				if interrupted:
 					sys.exit(130)
 
+	def run_single_benchmark(self, timeout, solver, graph):
+		interrupted = False
+		run_time = None
+		result = None
+
+		try:
+			tick = time.perf_counter()
+			result = with_timeout(timeout, default=None)(solver.run)(graph)
+		except KeyboardInterrupt:
+			# Will stop after writing results
+			interrupted = True
+			tock = time.perf_counter()
+			run_time = tock - tick
+
+		return result, run_time, interrupted
+	
 	def results(self) -> List[Result]:
 		results_path = os.path.join(self.benchmark_path, "results.json")
 
