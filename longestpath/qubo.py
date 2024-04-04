@@ -126,6 +126,7 @@ class QUBOSolver:
 	
 	def sampleset_to_result(self, sampleset):
 		X = self.var_names_matrix
+		graph = self.graph
 		M = self.max_length_path+1
 		N = self.graph.vertices
 
@@ -168,6 +169,10 @@ class QUBOSolver:
 		return result
 
 	@with_timed_result
+	def solve_for_sample(self, **sampler_kwargs):
+		sampleset = self.sample(**sampler_kwargs)
+		best_sample = sampleset.first
+		return (best_sample.energy, sampleset)
 	def solve(self, use_leap=False, **sampler_kwargs):
 		if use_leap:
 			sampleset = self.sample_leap(**sampler_kwargs)
