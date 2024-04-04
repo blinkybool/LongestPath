@@ -28,6 +28,11 @@ def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
 	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
 	return StandardGraph(num_vertices, random_edges)
 
+def gen_num_edges_no_loops(num_vertices: int, num_edges: int) -> StandardGraph:
+	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices) if s < t]
+	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), min(num_edges, len(all_edges)), replace = False)]
+	return StandardGraph(num_vertices, random_edges)
+
 def gen_density(num_vertices: int, density: float, directed: bool = True) -> StandardGraph:
 	if not directed:
 		raise NotImplementedError()

@@ -32,6 +32,8 @@ class QUBOSolver:
 		M = self.max_length_path
 		P = -(M+1)
 
+		graph = self.graph
+
 		# The variable V[m][n] will be compiled to its label X[m][n] in the bqm
 		# So use V in pyqubo expressions, and X when updating the bqm directly
 		X = self.var_names_matrix
@@ -118,6 +120,7 @@ class QUBOSolver:
 	
 	def sample_to_result(self, sample):
 		X = self.var_names_matrix
+		graph = self.graph
 
 		multi_path = [[v for v in range(graph.vertices+1) if sample.sample.get(X[m][v], 0) == 1] for m in range(graph.vertices)]
 
@@ -150,6 +153,11 @@ class QUBOSolver:
 		sampleset = self.sample(**sampler_kwargs)
 		best_sample = sampleset.first
 		return self.sample_to_result(best_sample)
+	
+	def solve_for_sample(self, **sampler_kwargs):
+		sampleset = self.sample(**sampler_kwargs)
+		best_sample = sampleset.first
+		return (best_sample.energy, sampleset)
 
 if __name__ == "__main__":
 	n = 20

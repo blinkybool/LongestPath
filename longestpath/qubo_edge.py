@@ -1,9 +1,10 @@
 from pyqubo import Array, LogEncInteger
 import neal
-from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, gen_num_edges
+from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, gen_num_edges, gen_num_edges_no_loops
 from typing import List
 from longestpath import brute
 import multiprocessing
+from .utils import with_timed_result
 
 class QUBO_Edge_Solver:
     def __init__(self, graph: StandardGraph, max_length_path: int | None = None):
@@ -15,7 +16,8 @@ class QUBO_Edge_Solver:
 
     # This function turns a graph into new graph with a tail of specified length.
     # All vertices in the original graph are connected to the beginning of the tail.
-    def make_tail_graph(graph : StandardGraph, tail_length : int) -> StandardGraph:
+    def make_tail_graph(self, tail_length : int) -> StandardGraph:
+        graph = self.graph
 
         if tail_length == 0:
             tail_graph = StandardGraph(0, [])
@@ -43,7 +45,8 @@ class QUBO_Edge_Solver:
     # This functions computes for every vertex in a graph the indices of the edges that are connected to a specific vertex.
     # These collections of indices are stored in lists of integers.
     # The lists are then stored in an outer list of which the indices correspond to the vertices of the graph.
-    def make_vertex_edges(graph : StandardGraph) -> List[List[int]] :
+    def make_vertex_edges(self) -> List[List[int]] :
+        graph = self.tail_graph
         out = [[] for i in range(graph.vertices)]
 
         for i in range(len(graph.edges)):
@@ -57,7 +60,8 @@ class QUBO_Edge_Solver:
     # We endow an orientation on all the edged in a graph.
     # Edge (i,j) goes from i to j.
     # With respect to this orientation, we compute for each vertex in a graph which edges point towards that vertex
-    def make_in_flow_edges(graph : StandardGraph) -> List[List[int]] :
+    def make_in_flow_edges(self) -> List[List[int]] :
+        graph = self.tail_graph
         out = [[] for i in range(graph.vertices)]
 
         for i in range(len(graph.edges)):
@@ -68,7 +72,8 @@ class QUBO_Edge_Solver:
         return out
 
     #We also compute, for each vertex, which edges point away from that vertex
-    def make_out_flow_edges(graph : StandardGraph) -> List[List[int]] :
+    def make_out_flow_edges(self) -> List[List[int]] :
+        graph = self.tail_graph
         out = [[] for i in range(graph.vertices)]
 
         for i in range(len(graph.edges)):
@@ -89,51 +94,41 @@ class QUBO_Edge_Solver:
         P = -N
 
 		# We add a tail to the original graph as is described in the report.
-        tail_graph = self.make_tail_graph(graph, K)
+        self.tail_graph = self.make_tail_graph(K)
+        tail_graph = self.tail_graph
 
         # For each vertex we compute which edges are connected to it.
-        tail_vertex_edges = self.make_vertex_edges(tail_graph)
+        tail_vertex_edges = self.make_vertex_edges()
 
         # We view all edges as oriented edges and store for each vertex
         # the ingoing and outgoing edges.
-        out_flow_edges = self.make_out_flow_edges(tail_graph)
-        in_flow_edges = self.make_in_flow_edges(tail_graph)
+        out_flow_edges = self.make_out_flow_edges()
+        in_flow_edges = self.make_in_flow_edges()
 
-
-        # Let E be the amount of edges in the input graph.
         # We formulate the problem as a maximization problem.
 
         # We create for each vertex a binary variable that indicates if that vertex is on the path.
 
-        vertex_vars = Array.create('vertex', tail_graph.vertices, vartype='BINARY') #N+K binary variables
+        vertex_vars = Array.create('vertex', tail_graph.vertices, vartype='BINARY')
 
         # For each edge in the graph with tail, we create a binary value that indicates if that edge is used in the path.
         # We also consider edges from an initial and terminal "vertex". The values of these variables indicate where a path begins and ends.
 
-        edge_vars = Array.create('edge', len(tail_graph.edges), vartype='BINARY') # E + N + K - 1 binary variables
-        initial_edge_vars = Array.create('init_edge', graph.vertices, vartype='BINARY') # N binary variables
-        terminal_edge_vars = Array.create('term_edge', tail_graph.vertices, vartype='BINARY') # N+K binary variables
+        edge_vars = Array.create('edge', len(tail_graph.edges), vartype='BINARY')
+        initial_edge_vars = Array.create('init_edge', graph.vertices, vartype='BINARY')
+        terminal_edge_vars = Array.create('term_edge', tail_graph.vertices, vartype='BINARY')
 
         # For each edge (with initial and terminal edges included) we store a inetger flow value in the possitive dirrection of the edges.
         # A flow value can be at most K + 2 and must be at least 0.
 
-        flow_vars = [LogEncInteger(f"flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))] # (E + N + K - 1) * (floor(log_2(K+2)) + 1) binary variables
-        initial_flow_vars = [LogEncInteger(f"initial_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be ingoing, (N) * (floor(log_2(K+2)) + 1) binary variables
-        terminal_flow_vars = [LogEncInteger(f"terminal_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be outgoing, (N + K) * (floor(log_2(K+2)) + 1) binary variables
-
+        flow_vars = [LogEncInteger(f"flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))]
+        initial_flow_vars = [LogEncInteger(f"initial_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be ingoing
+        terminal_flow_vars = [LogEncInteger(f"terminal_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be outgoing
         # We also store flow values for the negative directions of edges.
 
-        contra_flow_vars = [LogEncInteger(f"contra_flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))] # (E + N + K - 1) * (floor(log_2(K+2)) + 1) binary variables
-        initial_contra_flow_vars = [LogEncInteger(f"initial_contra_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be outgoing, (N) * (floor(log_2(K+2)) + 1) binary variables
-        terminal_contra_flow_vars = [LogEncInteger(f"terminal_contra_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be ingoing, (N + K) * (floor(log_2(K+2)) + 1) binary variables
-
-        # The total variable count is:
-        # (N+K) + (E+N+K-1) + (N) + (N+K) + (E + N + K - 1) * (floor(log_2(K+2)) + 1) + (N) * (floor(log_2(K+2)) + 1) + (N + K) * (floor(log_2(K+2)) + 1) + (E + N + K - 1) * (floor(log_2(K+2)) + 1) + (N) * (floor(log_2(K+2)) + 1) + (N + K) * (floor(log_2(K+2)) + 1)
-        # = (E + 4N + 3K - 2) + (2E + 6N + 4K - 2) * (floor(log_2(K+2)) + 1)
-        # = (3E + 10N + 7K - 4) + (2E + 6N + 4K - 2) * floor(log_2(K+2))
-        # Usually K = N - 1, so then this becomes
-        # = (3E + 17N - 11) + (2E + 10N + 6) * floor(log_2(N + 1))
-        # Where E is at most N^2.
+        contra_flow_vars = [LogEncInteger(f"contra_flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))]
+        initial_contra_flow_vars = [LogEncInteger(f"initial_contra_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be outgoing
+        terminal_contra_flow_vars = [LogEncInteger(f"terminal_contra_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be ingoing
 
         # This variable will store the matrix for the qubo formulation in the form of a quadratic expression.
         qubo_matrix_expression = 0
@@ -217,25 +212,64 @@ class QUBO_Edge_Solver:
         bqm = model.to_bqm()
         return bqm
     
+    def get_bqm(self):
+        if not hasattr(self, "bqm"):
+            self.bqm = self.generate_bqm()
+        return self.bqm
+
+    def get_default_beta_range(self):
+        bqm = self.get_bqm()
+        return neal.sampler.default_beta_range(bqm)
+
+
+    def sample(self, **kwargs):
+        bqm = self.get_bqm()
+        sa = neal.SimulatedAnnealingSampler()
+        sampleset = sa.sample(bqm, **kwargs)
+        return sampleset
+
+    @with_timed_result
+    def solve(self, **sampler_kwargs):
+        sampleset = self.sample(**sampler_kwargs)
+        best_sample = sampleset.first
+        return self.sample_to_result(best_sample)
+    
+    def solve_for_sample(self, **sampler_kwargs):
+        sampleset = self.sample(**sampler_kwargs)
+        best_sample = sampleset.first
+        return best_sample
+
+    def sample_to_result(self, sample):
+        multi_path = []
+        result = {"reward": -sample.energy, 'multi_path': multi_path}
+        return result
+
 if __name__ == "__main__":
-	n = 3
-	d = 2
-	graph = gen_num_edges(n, round(n * d))
+    n = 3
+    d = 1
+    graph = gen_num_edges_no_loops(n, round(n * d))
 
-	def pretty_result(result):
-		info = {k:v for k,v in result.items() if type(v) in [int, float, str]}
-		if "path" in result:
-			info["length"] = len(result['path'])-1
-			format_str = "{:>3},"*len(result['path'])
-			return str(info) + "\n" + format_str.format(*list(map(str, result['path'])))
-		else:
-			return str(info)
+    print(graph)
 
-	brute_result = brute.solve(multiprocessing.Queue(), graph, "BRANCH_N_BOUND")
-	print("BRUTE", pretty_result(brute_result))
+    # graph = StandardGraph(3, [
+	# (0,1),
+    # (1,2),
+    # ])
 
-	solver = QUBO_Edge_Solver(graph)
-	min_beta, max_beta = solver.get_default_beta_range()
-	result = solver.solve(num_reads=10_000, num_sweeps=100, beta_range=(0.1, 0.5*max_beta))
-	print("QUBOSolver", pretty_result(result))
+    def pretty_result(result):
+        info = {k:v for k,v in result.items() if type(v) in [int, float, str]}
+        if "path" in result:
+            info["length"] = len(result['path'])-1
+            format_str = "{:>3},"*len(result['path'])
+            return str(info) + "\n" + format_str.format(*list(map(str, result['path'])))
+        else:
+            return str(info)
+
+    brute_result = brute.solve(multiprocessing.Queue(), graph, "BRANCH_N_BOUND")
+    print("BRUTE", pretty_result(brute_result))
+
+    solver = QUBO_Edge_Solver(graph)
+    min_beta, max_beta = solver.get_default_beta_range()
+    result = solver.solve(num_reads=10_000, num_sweeps=1000, beta_range=(0.1, 0.5*max_beta))
+    print("QUBOSolver", result)# pretty_result(result))
     
