@@ -28,6 +28,16 @@ def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
 	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
 	return StandardGraph(num_vertices, random_edges)
 
+def gen_num_edges_undirected(num_vertices: int, num_edges: int) -> StandardGraph:
+	all_edges = [{s, t} for s in range(num_vertices) for t in range(num_vertices) if s != t]
+	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
+
+	random_edges2 = [tuple(e) for e in random_edges]
+	random_edges3 = random_edges2 + [(t, s) for s,t in random_edges2]
+
+	return StandardGraph(num_vertices, random_edges3)
+
+
 def gen_density(num_vertices: int, density: float, directed: bool = True) -> StandardGraph:
 	if not directed:
 		raise NotImplementedError()
@@ -76,6 +86,32 @@ def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
 	]
 	
 	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
+
+def gen_planted_hamiltonian_undirected_fixed_degree(vertices: int, num_edges: int) -> StandardGraph:
+	line = linear_graph(vertices).edges
+	line_set = set(line)
+	all_edges = [
+		(s, t) 
+			for s in range(vertices) 
+			for t in range(vertices) 
+			if (s,t) not in line_set and (t,s) not in line_set and s < t
+	]
+
+	amount_of_edges_to_choose = max(0, min(len(all_edges), num_edges - vertices + 1))
+
+	random_edges = [
+		all_edges[i] for i in np.random.choice(
+			len(all_edges), 
+			amount_of_edges_to_choose, 
+			replace = False
+		)
+	]
+
+	edges = random_edges + line
+
+	final_edges = edges + [(t, s) for s,t in edges]
+	
+	return StandardGraph(vertices, final_edges)
 
 def shuffle_vertex_names(graph: StandardGraph) -> StandardGraph:
 	'''
