@@ -134,7 +134,7 @@ class QUBOSolver:
 		multi_path = [[v for v in range(N+1) if best.sample.get(X[m][v], 0) == 1] for m in range(M)]
 
 		result = {
-			'reward': -best.energy,
+			'reward': -float(best.energy),
 			'multi_path': multi_path,
 			'num_samples': len(sampleset.record.sample),
 			'sampleset_info': sampleset.info,
@@ -154,6 +154,10 @@ class QUBOSolver:
 			path = list(itertools.takewhile(lambda v: v < self.graph.vertices, terminal_path))
 			Ntail = itertools.dropwhile(lambda v: v < self.graph.vertices, terminal_path)
 			N = self.graph.vertices
+
+			valid, msg = graph.valid_path(path)
+			if not valid:
+				result['failure'] = f"Path is invalid: {msg}"
 
 			for v in Ntail:
 				if v != N:
