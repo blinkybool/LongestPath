@@ -1,5 +1,5 @@
 
-from longestpath import brute, ilp, kalp
+from longestpath import brute, ilp, kalp, qubo
 from dataclasses import dataclass
 from typing import TypedDict, List, Any, Dict
 from .utils import with_timed_result
@@ -8,6 +8,7 @@ solvers = {
 	"brute": brute.solve,
 	"kalp": kalp.solve_KaLP,
 	"ilp": with_timed_result(ilp.solve),
+	"qubo": qubo.solve,
 }
 
 @dataclass
@@ -22,8 +23,8 @@ class Solver():
 		self.args = args
 		self.kwargs = kwargs
 
-	def run(self, process_queue, graph):
-		return solvers[self.name](process_queue, graph, *self.args, **self.kwargs)
+	def run(self, graph, process_queue=None):
+		return solvers[self.name](graph, *self.args, process_queue=process_queue, **self.kwargs)
 
 	def serialise(self):
 		return {
