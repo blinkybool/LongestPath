@@ -86603,12 +86603,6 @@
     "graph_id": "511"
   },
   {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "513"
-  },
-  {
     "status": "OPTIMAL",
     "objective_value": 26.0,
     "path": [
@@ -86898,12 +86892,6 @@
     "graph_id": "521"
   },
   {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "522"
-  },
-  {
     "status": "OPTIMAL",
     "objective_value": 27.0,
     "path": [
@@ -86975,12 +86963,6 @@
     "length": 25,
     "solver": 4,
     "graph_id": "524"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "525"
   },
   {
     "status": "OPTIMAL",
@@ -87165,12 +87147,6 @@
     "length": 28,
     "solver": 4,
     "graph_id": "530"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "531"
   },
   {
     "status": "OPTIMAL",
@@ -87758,30 +87734,6 @@
     "graph_id": "547"
   },
   {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "548"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "549"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "550"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "551"
-  },
-  {
     "status": "OPTIMAL",
     "objective_value": 27.0,
     "path": [
@@ -87817,12 +87769,6 @@
     "length": 26,
     "solver": 4,
     "graph_id": "552"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "553"
   },
   {
     "status": "OPTIMAL",
@@ -88154,18 +88100,6 @@
     "graph_id": "562"
   },
   {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "563"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "564"
-  },
-  {
     "status": "OPTIMAL",
     "objective_value": 29.0,
     "path": [
@@ -88275,18 +88209,6 @@
     "length": 25,
     "solver": 4,
     "graph_id": "567"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "568"
-  },
-  {
-    "failure": "timeout",
-    "run_time": 300,
-    "solver": 4,
-    "graph_id": "569"
   },
   {
     "status": "OPTIMAL",
@@ -125521,9 +125443,273 @@
     "graph_id": "507"
   },
   {
-    "failure": "interrupted",
-    "run_time": 0.06851877700000841,
+    "failure": "timeout",
+    "run_time": 600,
     "solver": 4,
     "graph_id": "512"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 27.0,
+    "path": [
+      21,
+      22,
+      25,
+      18,
+      10,
+      5,
+      4,
+      9,
+      8,
+      11,
+      1,
+      2,
+      13,
+      19,
+      16,
+      26,
+      0,
+      6,
+      20,
+      14,
+      7,
+      27,
+      3,
+      23,
+      15,
+      12,
+      17
+    ],
+    "run_time": 339.27955647199997,
+    "length": 26,
+    "solver": 4,
+    "graph_id": "513"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "522"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 26.0,
+    "path": [
+      5,
+      1,
+      7,
+      6,
+      8,
+      2,
+      14,
+      9,
+      22,
+      20,
+      29,
+      15,
+      4,
+      12,
+      3,
+      18,
+      19,
+      16,
+      23,
+      21,
+      13,
+      27,
+      24,
+      28,
+      25,
+      10
+    ],
+    "run_time": 329.80310703700025,
+    "length": 25,
+    "solver": 4,
+    "graph_id": "525"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 28.0,
+    "path": [
+      10,
+      5,
+      4,
+      11,
+      23,
+      21,
+      19,
+      18,
+      2,
+      13,
+      7,
+      25,
+      12,
+      20,
+      29,
+      27,
+      15,
+      22,
+      17,
+      28,
+      0,
+      8,
+      6,
+      16,
+      3,
+      24,
+      1,
+      26
+    ],
+    "run_time": 323.73807463699995,
+    "length": 27,
+    "solver": 4,
+    "graph_id": "531"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 28.0,
+    "path": [
+      24,
+      16,
+      9,
+      5,
+      8,
+      12,
+      21,
+      25,
+      11,
+      18,
+      6,
+      22,
+      26,
+      19,
+      27,
+      1,
+      23,
+      0,
+      10,
+      15,
+      17,
+      14,
+      3,
+      13,
+      28,
+      7,
+      4,
+      29
+    ],
+    "run_time": 548.002819373,
+    "length": 27,
+    "solver": 4,
+    "graph_id": "548"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 28.0,
+    "path": [
+      8,
+      26,
+      25,
+      19,
+      18,
+      0,
+      10,
+      6,
+      21,
+      17,
+      27,
+      5,
+      1,
+      4,
+      20,
+      23,
+      12,
+      15,
+      22,
+      3,
+      14,
+      9,
+      28,
+      29,
+      16,
+      24,
+      13,
+      7
+    ],
+    "run_time": 401.2424885070004,
+    "length": 27,
+    "solver": 4,
+    "graph_id": "549"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "550"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "551"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "553"
+  },
+  {
+    "status": "OPTIMAL",
+    "objective_value": 25.0,
+    "path": [
+      3,
+      26,
+      2,
+      6,
+      19,
+      15,
+      13,
+      24,
+      12,
+      14,
+      0,
+      25,
+      1,
+      9,
+      5,
+      28,
+      20,
+      16,
+      18,
+      10,
+      8,
+      11,
+      21,
+      17,
+      4
+    ],
+    "run_time": 349.7962271229999,
+    "length": 24,
+    "solver": 4,
+    "graph_id": "563"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "564"
+  },
+  {
+    "failure": "timeout",
+    "run_time": 600,
+    "solver": 4,
+    "graph_id": "568"
+  },
+  {
+    "failure": "interrupted",
+    "run_time": 448.0906476169994,
+    "solver": 4,
+    "graph_id": "569"
   }
 ]
