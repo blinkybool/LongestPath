@@ -196,6 +196,10 @@ class Benchmark:
 		df = pd.DataFrame(self.results())
 		solver_names = [str(solver) for solver in self.solvers]
 		df["solver_name"] = df["solver"].apply(lambda i: solver_names[i])
+
+		if not "failure" in df:
+			df["failure"] = None
+
 		return df
 
 	def get_graph_dataframe(self):
