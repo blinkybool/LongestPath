@@ -1,5 +1,5 @@
 
-from longestpath import brute, ilp, kalp, qubo
+from longestpath import brute, ilp, kalp, qubo, anneal
 from dataclasses import dataclass
 from typing import TypedDict, List, Any, Dict
 from .utils import with_timed_result
@@ -9,6 +9,7 @@ solvers = {
 	"kalp": kalp.solve_KaLP,
 	"ilp": with_timed_result(ilp.solve),
 	"qubo": with_timed_result(qubo.solve),
+	"anneal": with_timed_result(anneal.solve),
 }
 
 @dataclass
