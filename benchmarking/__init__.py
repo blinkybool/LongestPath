@@ -1,6 +1,6 @@
 import os, json, sys, shutil
 from datetime import datetime
-from typing import List, TypedDict, Optional, NamedTuple
+from typing import List, TypedDict, Optional, NamedTuple, Dict
 from longestpath import (
 	StandardGraph,
 	gen_num_edges,
@@ -105,8 +105,11 @@ class Benchmark:
 		with open(self.info_path, "w") as info_file:
 			json.dump(self.info, info_file, indent=2)
 
+		self.__init__(self.benchmark_path, self.graphs_path, self.info_path)
+
 	def run(self,
 			timeout: float | None = None,
+			solver_indices: List[int] = None,
 			retryFailures: bool = False):
 
 		results_path = os.path.join(self.benchmark_path, "results.json")
@@ -124,6 +127,9 @@ class Benchmark:
 
 		# Run benchmark
 		for solver_index, solver in enumerate(self.solvers):
+			if solver_indices is not None and solver_index not in solver_indices:
+				continue
+
 			for graph_id, graph in self.graphs:
 				existing_list = [
 					result for result in results 

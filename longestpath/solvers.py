@@ -8,7 +8,7 @@ solvers = {
 	"brute": brute.solve,
 	"kalp": kalp.solve_KaLP,
 	"ilp": with_timed_result(ilp.solve),
-	"qubo": qubo.solve,
+	"qubo": with_timed_result(qubo.solve),
 }
 
 @dataclass

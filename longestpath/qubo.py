@@ -7,9 +7,6 @@ from typing import List, Dict, Tuple
 from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, complete_graph, gen_num_edges
 import itertools
 from longestpath import brute
-from .utils import with_timed_result
-import multiprocessing
-import json
 
 # Like bqm.update but with a pyqubo exp and a scalar
 def update(bqm, exp, scalar):
@@ -112,7 +109,7 @@ class QUBOSolver:
 		bqm = self.get_bqm()
 		return neal.sampler.default_beta_range(bqm)
 
-	def sample(self, **kwargs):
+	def sample_sampleset(self, **kwargs):
 		bqm = self.get_bqm()
 		sa = neal.SimulatedAnnealingSampler()
 		sampleset = sa.sample(bqm, **kwargs)
@@ -126,7 +123,6 @@ class QUBOSolver:
 	
 	def sampleset_to_result(self, sampleset):
 		X = self.var_names_matrix
-		graph = self.graph
 		M = self.max_length_path+1
 		N = self.graph.vertices
 
@@ -156,7 +152,7 @@ class QUBOSolver:
 			Ntail = itertools.dropwhile(lambda v: v < self.graph.vertices, terminal_path)
 			N = self.graph.vertices
 
-			valid, msg = graph.valid_path(path)
+			valid, msg = self.graph.valid_path(path)
 			if not valid:
 				result['failure'] = f"Path is invalid: {msg}"
 
@@ -167,27 +163,38 @@ class QUBOSolver:
 				result['path'] = path
 
 		return result
-
-	@with_timed_result
-	def solve_for_sample(self, **sampler_kwargs):
-		sampleset = self.sample(**sampler_kwargs)
-		best_sample = sampleset.first
-		return (best_sample.energy, sampleset)
-	def solve(self, use_leap=False, **sampler_kwargs):
+	
+	def solve(self, use_known_length=False, use_leap=False, **sampler_kwargs):
 		if use_leap:
 			sampleset = self.sample_leap(**sampler_kwargs)
 		else:
-			sampleset = self.sample(**sampler_kwargs)
-		result = self.sampleset_to_result(sampleset)
-		return result
+			sampleset = self.sample_sampleset(**sampler_kwargs)
 
-def solve(graph: StandardGraph, max_length_path: int | None = None, use_leap=False, sampler_kwargs={}, process_queue=None):
+		if use_known_length:
+			length = self.graph.get_known_longest_path_length()
+			return self.solve_until_length(length, use_leap=use_leap, **sampler_kwargs)
+		return self.sampleset_to_result(sampleset)
+	
+	def solve_until_length(self, length: int, **sampler_kwargs):
+		sampler_kwargs['num_reads'] = sampler_kwargs.get('num_reads', 100)
+
+		sampler_calls = 0
+		while True:
+			sampler_calls += 1
+			sampleset = self.sample_sampleset(**sampler_kwargs)
+			reward = int(-sampleset.first.energy)
+			if reward >= length:
+				result = self.sampleset_to_result(sampleset)
+				result['sampler_calls'] = sampler_calls
+				return result
+
+def solve(graph: StandardGraph, max_length_path: int | None = None, use_known_length: bool = False, use_leap=False, sampler_kwargs={}, process_queue=None):
 	solver = QUBOSolver(graph, max_length_path)
-	return solver.solve(use_leap, **sampler_kwargs)
+	return solver.solve(use_leap=use_leap, use_known_length=use_known_length, **sampler_kwargs)
 
 if __name__ == "__main__":
-	n = 20
-	d = 3
+	n = 30
+	d = 2
 	graph = gen_num_edges(n, round(n * d))
 
 	def pretty_result(result):
@@ -200,11 +207,14 @@ if __name__ == "__main__":
 			return str(info)
 
 	brute_result = brute.solve(graph, "BRANCH_N_BOUND")
+	actual_length = len(brute_result['path'])-1
+	graph.set_known_longest_path_length(actual_length)
 	print("brute", pretty_result(brute_result))
 
+	
 	solver = QUBOSolver(graph)
 	min_beta, max_beta = solver.get_default_beta_range()
+	print((0.1, 0.1*max_beta))
 
-	print((0.1, 0.2*max_beta))
 
-	print("QuboSolver", pretty_result(solver.solve(num_reads=10_000, num_sweeps=1000, beta_range=(0.1, 0.2*max_beta))))
+	print("QuboSolver", pretty_result(solver.solve(use_known_length=True, max_length_path=actual_length, num_reads=100, num_sweeps=1000, beta_range=(0.1, 0.1*max_beta))))

@@ -15,7 +15,7 @@ STATUS = {
 def var_solution_is_one(var):
 	return round(var.solution_value()) == 1
 
-def solve(graph: StandardGraph, max_path_length: int | None = None):
+def solve(graph: StandardGraph, max_path_length: int | None = None, process_queue = None):
 	
 	solver, variables = create_solver(graph, max_path_length=max_path_length)
 
@@ -94,7 +94,9 @@ if __name__ == "__main__":
 	from longestpath import gen_num_edges, gen_average_degree_directed
 	from .utils import with_time
 
-	graph = gen_average_degree_directed(100, 50)
+	n = 50
+	d = 2
+	graph = gen_num_edges(n, round(n * d))
 
 	result, run_time = with_time(solve)(graph)
 	print(result)

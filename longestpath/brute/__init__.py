@@ -35,19 +35,19 @@ def solve(graph: StandardGraph, method: Method, progressfile: str | None = None,
 
 	if process_queue is not None:
 		process_queue.put(process.pid)
-	
+
 	output, err = process.communicate(
 		input=str(graph)
 	)
 
 	if process.returncode < 0:
-		print(process.stdout)
-		print(process.stderr)
+		print(output)
+		print(err)
 		raise RuntimeError(f"Executable exited with error. Return code {process.returncode}")
 
 	if process.returncode != 0:
-		print(process.stdout)
-		print(process.stderr)
+		print(output)
+		print(err)
 		raise RuntimeError("Executable exited with error.")
 	
 	data = {}
