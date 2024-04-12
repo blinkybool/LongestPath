@@ -35,7 +35,6 @@
 
 	function updatePath(path) {
 		path = path ? path : [];
-		console.log(path)
 		function hasEdge(u, v) {
 			const i = path.indexOf(u)
 			const j = path.indexOf(v)
@@ -43,13 +42,12 @@
 			return i != -1 && j != -1 && j == i + 1
 		} 
 		Graph
-			// .nodeColor(node => true ? red3 : grey)
 			.nodeColor(node => path.includes(node.id) ? red3 : grey)
 			.linkWidth(link => hasEdge(link.source.id, link.target.id) ? 2 : 1)
 			.linkColor(link => hasEdge(link.source.id, link.target.id) ? red2 : grey)
 	}
 
-	fetch('/vis_data')
+	fetch('/data')
 		.then(res => res.json())
 		.then(vis_data => {
 			graphs = vis_data.graphs
