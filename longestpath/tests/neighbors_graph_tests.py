@@ -1,9 +1,9 @@
-from .gen import StandardGraph, linear_graph, complete_graph
-from .neighbors_graph import *
+from ..gen import StandardGraph, linear_graph, complete_graph
+from ..neighbors_graph import *
 import unittest
 import random
 
-class TestGen(unittest.TestCase):
+class TestNeighborsGraph(unittest.TestCase):
     def assertEqualGraphs(self, G1, G2):
       self.assertEqual(G1.in_nodes, G2.in_nodes)
       self.assertEqual(G1.out_nodes, G2.out_nodes)

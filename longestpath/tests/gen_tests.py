@@ -1,4 +1,4 @@
-from .gen import *
+from ..gen import *
 import unittest
 import random
 
@@ -6,7 +6,6 @@ class TestGen(unittest.TestCase):
     def assertEqualGraphs(self, G1, G2):
         self.assertEqual(G1.vertices, G2.vertices)
         self.assertEqual(set(G1.edges), set(G2.edges))
-
    
     # This test fails!
     # def test_gen_erdos_reyni(self):
