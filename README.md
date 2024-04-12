@@ -16,10 +16,10 @@ pip install -r requirements.txt
 ```
 In order for KaLP to run you need to install KaLP manually and expose the executable path to python.
 For installing KaLP checkout: https://karlsruhelongestpaths.github.io/.
-To give python access to the KaLP executable you need to set the `KALP_PATH` environment variable using `.env` files.
+To give python access to the KaLP executable you need to set the `KALP_PATH` environment variable to `your_kalp_location/deploy` using `.env` files.
 In order for the notebooks to work you also need a duplicate of this `.env` file to be included in `./notebooks`.
 ```bash
 touch .env
-echo "KALP_PATH=[you kalp path]" > .env
+echo "KALP_PATH=[you_kalp_path/deploy]" > .env
 cp .env notebooks/.env
 ```
