@@ -6,7 +6,7 @@ from longestpath import (
 	gen_num_edges,
 	gen_average_degree_directed,
 	gen_density,
-	gen_erdos_reyni_directed)
+	gen_random_edges_directed)
 from longestpath.solvers import Solver
 from longestpath.utils import with_timeout
 import time
@@ -32,7 +32,7 @@ class RandomParams(NamedTuple):
 		if self.num_edges is not None:
 			return gen_num_edges(self.num_vertices, self.num_edges)
 		elif self.p is not None:
-			return gen_erdos_reyni_directed(self.num_vertices, self.p)
+			return gen_random_edges_directed(self.num_vertices, self.p)
 		elif self.average_degree is not None:
 			return gen_average_degree_directed(self.num_vertices, self.average_degree)
 		elif self.density is not None:

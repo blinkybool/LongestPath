@@ -22,14 +22,14 @@ def random_subset(set: list, p: float) -> list:
 	choices = np.random.choice(range(len(set)), n, replace = False)
 	return [set[i] for i in choices]
 
-def gen_erdos_reyni_directed(num_vertices: int, p:float) -> StandardGraph:
+def gen_random_edges_directed(num_vertices: int, p:float) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
 
 def gen_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
 	p = min(1, average_degree / num_vertices)
-	return gen_erdos_reyni_directed(num_vertices, p)
+	return gen_random_edges_directed(num_vertices, p)
 
 def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
@@ -71,7 +71,7 @@ def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int
 
 	for v in range(path_length):
 		max_nodes = min(v + 1, path_length - v)
-		G = gen_erdos_reyni_directed(node_count(max_nodes), p = p)
+		G = gen_random_edges_directed(node_count(max_nodes), p = p)
 		result.wedge(G, v, 0)
 	
 	return result

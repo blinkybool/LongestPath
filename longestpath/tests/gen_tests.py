@@ -8,18 +8,10 @@ class TestGen(unittest.TestCase):
         self.assertEqual(G1.vertices, G2.vertices)
         self.assertEqual(set(G1.edges), set(G2.edges))
    
-    # This test fails!
-    # def test_gen_erdos_reyni(self):
-    #     random.seed(0)
-    #     self.assertEqualGraphs(
-    #         gen_erdos_reyni(5, p = 1),
-    #         complete_graph(5),
-    #     )
-
-    def test_gen_erdos_reyni_directed(self):
+    def test_gen_random_edges_directed(self):
         random.seed(0)
         self.assertEqualGraphs(
-            gen_erdos_reyni_directed(5, p = 1),
+            gen_random_edges_directed(5, p = 1),
             complete_graph(5),
         )
 
