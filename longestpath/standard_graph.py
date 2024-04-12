@@ -135,8 +135,8 @@ class StandardGraph:
 
 		return True, ""
 
-	def average_degree(self):
-		return 2 * len(self.edges) / self.vertices
+	# def average_degree(self):
+	# 	return 2 * len(self.edges) / self.vertices
 	
 	def get_known_longest_path_length(self):
 		return self.longest_path_length
@@ -144,6 +144,12 @@ class StandardGraph:
 	def set_known_longest_path_length(self, length):
 		self.longest_path_length = length
 
+	def average_out_degree(self):
+		return len(self.edges) / self.vertices
+
+
+def discrete_graph(vertices: int) -> StandardGraph:
+	return StandardGraph(vertices, [])
 
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(

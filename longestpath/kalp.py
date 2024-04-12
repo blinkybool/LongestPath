@@ -1,7 +1,7 @@
 from .standard_graph import StandardGraph, linear_graph
 import os
 import subprocess
-from .gen import gen_planted_path, gen_erdos_reyni_directed
+from .gen import gen_planted_path, gen_random_edges_directed
 import random
 import numpy as np
 from dotenv import dotenv_values
@@ -223,10 +223,10 @@ def run_KaLP_universal(file_path: str, *args, process_queue=None, **kwargs):
 
     if re.search(r".*\.dimacs$", file_path) != None:
         with open(file_path, 'r') as f:
-            nr_vertices = int(f.readline().split(" ")[2])
+            nr_vertices = int(f.readline().split(" ")[2]) + 1
     elif re.search(r".*\.graph$", file_path) != None:
         with open(file_path, 'r') as f:
-            nr_vertices = sum(1 for _ in f) - 2
+            nr_vertices = sum(1 for _ in f) - 2 + 1
     else:
         raise ValueError(f"File should have .graph or .dimacs extension but the path is: {path}")
 
@@ -242,6 +242,10 @@ def run_KaLP_universal(file_path: str, *args, process_queue=None, **kwargs):
 
             if len(path) > len(longest_path):
                 longest_path = path
+
+            if len(path) == nr_vertices:
+                print("ham!")
+                return longest_path, runtime
 
     return longest_path, runtime
 

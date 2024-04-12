@@ -4,9 +4,9 @@ from typing import List, TypedDict, Optional, NamedTuple, Dict
 from longestpath import (
 	StandardGraph,
 	gen_num_edges,
-	gen_average_degree_directed,
+	gen_random_edges_average_degree_directed,
 	gen_density,
-	gen_erdos_reyni_directed)
+	gen_random_edges_directed)
 from longestpath.solvers import Solver
 from longestpath.utils import with_timeout
 import time
@@ -32,9 +32,9 @@ class RandomParams(NamedTuple):
 		if self.num_edges is not None:
 			return gen_num_edges(self.num_vertices, self.num_edges)
 		elif self.p is not None:
-			return gen_erdos_reyni_directed(self.num_vertices, self.p)
+			return gen_random_edges_directed(self.num_vertices, self.p)
 		elif self.average_degree is not None:
-			return gen_average_degree_directed(self.num_vertices, self.average_degree)
+			return gen_random_edges_average_degree_directed(self.num_vertices, self.average_degree)
 		elif self.density is not None:
 			return gen_density(self.num_vertices, self.density, self.directed)
 		else:
@@ -131,19 +131,23 @@ class Benchmark:
 				continue
 
 			for graph_id, graph in self.graphs:
-				existing_list = [
+				# Find the results that are already present in the file for this solver and this graph
+				existing_results = [
 					result for result in results 
 						if result["graph_id"] == graph_id and result["solver"] == solver_index
 				]
-				assert len(existing_list) in {0,1}, "Multiple results for same graph_id and solver"
-				if len(existing_list) == 1:
-					existing = existing_list[0]
-					if not ("failure" in existing and retryFailures):
+				assert len(existing_results) in {0,1}, "Multiple results for same graph_id and solver"
+
+				# If the previous result was a failure and retryFailures is enabled then we re-run the benchmark
+				# If however, there was no failure or retry failures is not enables we skip this benchmark
+				if len(existing_results) == 1:
+					existing_result = existing_results[0]
+					if not ("failure" in existing_result and retryFailures):
 						continue
 
 				print(f"graph: {graph_id}.txt, solver: {solver} ... ", end="")
 
-
+				# Run the benchmark
 				interrupted = False
 				run_time = None
 				result = None
@@ -160,7 +164,7 @@ class Benchmark:
 					tock = time.perf_counter()
 					run_time = tock - tick
 
-
+				# Format the results
 				if result is None:
 					result = {
 						"failure": interrupted and "interrupted" or "timeout",
@@ -179,6 +183,7 @@ class Benchmark:
 				result["solver"] = solver_index
 				result["graph_id"] = graph_id
 
+				# Append the results to the list
 				results = [r for r in results if not (r["graph_id"] == graph_id and r["solver"] == solver_index)]
 				results.append(result)
 	
@@ -188,7 +193,7 @@ class Benchmark:
 
 				if interrupted:
 					sys.exit(130)
-
+	
 	def results(self) -> List[Result]:
 		results_path = os.path.join(self.benchmark_path, "results.json")
 
@@ -201,6 +206,10 @@ class Benchmark:
 		df = pd.DataFrame(self.results())
 		solver_names = [str(solver) for solver in self.solvers]
 		df["solver_name"] = df["solver"].apply(lambda i: solver_names[i])
+
+		if not "failure" in df:
+			df["failure"] = None
+
 		return df
 
 	def get_graph_dataframe(self):
@@ -215,6 +224,7 @@ class Benchmark:
 	
 	def solver_names(self):
 		return [str(solver) for solver in self.solvers]
+	
 		
 def setup_benchmark(graphs_to_write, info, benchmark_path = None):
 	# If the benchmark_path is None we use the default path: benchmarks/benchmark-[DATE]
