@@ -125443,12 +125443,6 @@
     "graph_id": "507"
   },
   {
-    "failure": "timeout",
-    "run_time": 600,
-    "solver": 4,
-    "graph_id": "512"
-  },
-  {
     "status": "OPTIMAL",
     "objective_value": 27.0,
     "path": [
@@ -125711,5 +125705,11 @@
     "run_time": 448.0906476169994,
     "solver": 4,
     "graph_id": "569"
+  },
+  {
+    "failure": "interrupted",
+    "run_time": 3.979130594999333,
+    "solver": 4,
+    "graph_id": "512"
   }
 ]
