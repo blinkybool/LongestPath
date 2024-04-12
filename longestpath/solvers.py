@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import TypedDict, List, Any, Dict
 from .utils import with_timed_result
 
+# Assignment of names to specific solver implementations
+# A solver should be a function with a StandardGraph as its first positional argument and with an optional keyword argument called process_queue.
 solvers = {
 	"brute": brute.solve,
 	"kalp": kalp.solve_KaLP,
@@ -14,6 +16,10 @@ solvers = {
 
 @dataclass
 class Solver():
+	"""
+	A serializable description of longest path solvers.
+	It simply stores the name of a solver from the `solvers` dict and it stores the args and kwargs used to run the solver.
+	"""
 	name: str
 	args: List[Any]
 	kwargs: Dict[str, Any]
