@@ -18,4 +18,5 @@ envs/
 *.log
 benchmarks
 
-kalp_files/temp.graph
+kalp_files
+notebooks/kalp_files
