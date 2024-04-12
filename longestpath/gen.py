@@ -299,33 +299,3 @@ def gen_DAG(vertices: int, p: float):
 
 if __name__ == "__main__":
 	pass
-	# random.seed(3)
-	# np.random.seed(3)
-	# n = 50
-	# d = 3
-	# p = d/n
-	# graph = gen_erdos_reyni_directed(100, 0.011)
-	# print(graph)
-	# G = DAG(gen_DAG(20, 0.8))
-	# print(G.graph)
-	# print(G.lower_topo_sorting)
-	# print(G.upper_topo_sorting)
-	# print(G.find_longest_path())
-	# print(G.lower_topo_sorting_by_node)
-	# print(G.backward_least_expansion_distance(4))
-	# print(G.forward_least_expansion_distance(4))
-	# print(G.expand(0.5))
-
-	# print(shuffle_vertex_names(gen_planted_path(n, p)))
-	# print(LinearGraph(15).expand(0.5))
-	# print(gen_erdos_reyni_directed(20, 0.1))
-
-	G = gen_DAG(10, 0.5)
-	print(G)
-	
-	# print(G.topological_sort())
-
-	# G = gen_erdos_reyni_directed(10, 0.1)
-	# print(G)
-	# print(G.topological_sort())
-
