@@ -1,3 +1,5 @@
+""" Various utilities (especially plotting related) for the notebooks.
+"""
 import matplotlib.pyplot as plt
 import os
 import sys
