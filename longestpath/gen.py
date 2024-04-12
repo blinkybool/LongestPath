@@ -27,7 +27,7 @@ def gen_random_edges_directed(num_vertices: int, p:float) -> StandardGraph:
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
 
-def gen_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
+def gen_random_edges_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
 	p = min(1, average_degree / num_vertices)
 	return gen_random_edges_directed(num_vertices, p)
 
@@ -81,7 +81,7 @@ def gen_planted_path_with_average_degree(path_length: int, average_degree, node_
 
 	for v in range(path_length):
 		max_nodes = min(v + 1, path_length - v)
-		G = gen_average_degree_directed(node_count(max_nodes), average_degree=average_degree)
+		G = gen_random_edges_average_degree_directed(node_count(max_nodes), average_degree=average_degree)
 		result.wedge(G, v, 0)
 	
 	return result

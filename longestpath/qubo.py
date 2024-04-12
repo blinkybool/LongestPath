@@ -4,7 +4,7 @@ from dimod import BinaryQuadraticModel
 import neal
 from dwave.system import LeapHybridSampler
 from typing import List, Dict, Tuple
-from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, complete_graph, gen_num_edges
+from longestpath import gen_random_edges_average_degree_directed, gen_planted_path, StandardGraph, complete_graph, gen_num_edges
 import itertools
 from longestpath import brute
 

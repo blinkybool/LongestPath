@@ -4,7 +4,7 @@ from typing import List, TypedDict, Optional, NamedTuple, Dict
 from longestpath import (
 	StandardGraph,
 	gen_num_edges,
-	gen_average_degree_directed,
+	gen_random_edges_average_degree_directed,
 	gen_density,
 	gen_random_edges_directed)
 from longestpath.solvers import Solver
@@ -34,7 +34,7 @@ class RandomParams(NamedTuple):
 		elif self.p is not None:
 			return gen_random_edges_directed(self.num_vertices, self.p)
 		elif self.average_degree is not None:
-			return gen_average_degree_directed(self.num_vertices, self.average_degree)
+			return gen_random_edges_average_degree_directed(self.num_vertices, self.average_degree)
 		elif self.density is not None:
 			return gen_density(self.num_vertices, self.density, self.directed)
 		else:

@@ -1,6 +1,6 @@
 from pyqubo import Array, LogEncInteger
 import neal
-from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph, gen_num_edges, gen_num_edges_no_loops
+from longestpath import gen_random_edges_average_degree_directed, gen_planted_path, StandardGraph, gen_num_edges, gen_num_edges_no_loops
 from typing import List
 from longestpath import brute
 import multiprocessing

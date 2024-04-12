@@ -1,5 +1,5 @@
 from ortools.linear_solver import pywraplp
-from longestpath import gen_average_degree_directed, gen_planted_path, StandardGraph
+from longestpath import gen_random_edges_average_degree_directed, gen_planted_path, StandardGraph
 
 # Map status int to string
 # e.g. pywraplp.Solver.OPTIMAL is 0, so STATUS[0] = "OPTIMAL"
@@ -91,7 +91,7 @@ def create_solver(graph: StandardGraph, max_path_length: int = None):
 	return solver, variables
 
 if __name__ == "__main__":
-	from longestpath import gen_num_edges, gen_average_degree_directed
+	from longestpath import gen_num_edges, gen_random_edges_average_degree_directed
 	from .utils import with_time
 
 	n = 50
