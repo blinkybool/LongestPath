@@ -1,3 +1,6 @@
+"""
+Various wrappers for decorating functions
+"""
 import multiprocessing
 import os
 import random
@@ -11,21 +14,6 @@ from longestpath import brute
 from longestpath.gen import gen_num_edges
 from longestpath.kalp import solve_KaLP
 
-def call(fun, args, kwargs):
-    return fun(*args, **kwargs)
-
-
-def run_with_timeout(fun, args=[], kwargs={}, timeout: float | None = None):
-    if timeout == None:
-        return fun(*args, **kwargs)
-
-    else:
-        result = None
-
-        with multiprocessing.Pool(processes=1) as pool:
-            result = pool.apply_async(fun, args, kwargs).get(timeout=timeout)
-
-        return result
 
 def handler(queue, process_queue, func, args, kwargs):
     '''
@@ -104,23 +92,7 @@ def with_time(func):
 
     return wrapped
 
-# def with_try_result(func):
-#     def wrapped(*args, **kwargs):
-#         try:
-#             result = func(*args, **kwargs)
-#         except Exception as e:
-#             result = {
-#                 "failure" : repr(e)
-#             }
-#         return result
-
-#     return wrapped
-
-
 if __name__ == "__main__":
     random.seed(0)
     np.random.seed(0)
     G = gen_num_edges(10, 40)
-    # print(with_timeout(2)(brute.solve)(G, "FAST_BOUND"))
-    # print(with_timeout(2)(solve_KaLP)(G))
-    # run_with_timeout(solve_KaLP, [G], timeout=2)
