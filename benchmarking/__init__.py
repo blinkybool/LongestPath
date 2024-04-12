@@ -1,3 +1,6 @@
+"""
+This module contains code for a benchmarking system for longest path solvers.
+"""
 import os, json, sys, shutil
 from datetime import datetime
 from typing import List, TypedDict, Optional, NamedTuple, Dict
