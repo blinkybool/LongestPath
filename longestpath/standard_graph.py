@@ -148,6 +148,9 @@ class StandardGraph:
 		return len(self.edges) / self.vertices
 
 
+def discrete_graph(vertices: int) -> StandardGraph:
+	return StandardGraph(vertices, [])
+
 def complete_graph(vertices: int) -> StandardGraph:
 	return StandardGraph(
 		vertices,

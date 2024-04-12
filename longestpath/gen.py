@@ -1,19 +1,27 @@
+"""
+Contains various kinds of random graph generation methods.
+In particular it contains
+- Various different Erdős–Rényi (https://en.wikipedia.org/wiki/Erdős–Rényi_model) implementations
+- An ad-hoc way to generate random DAGs
+- Various ways to generate graphs with planted longest paths
+- A way to enlargen graphs without changing the length of the longest path.
+"""
+
 import math, random
 from dataclasses import dataclass
 from typing import List, Tuple, Callable
 import numpy as np
-from .topsort import TopSorter
 from .neighbors_graph import NeighborsGraph
 from .standard_graph import StandardGraph, linear_graph, complete_graph
 
 def random_subset(set: list, p: float) -> list:
+	"""
+	Selects a random subset of `set` uniformly at random.
+	"""
 	n = np.random.binomial(len(set), p)
-
 	choices = np.random.choice(range(len(set)), n, replace = False)
 	return [set[i] for i in choices]
 
-# This is a more direct implementation of Erdos Renyi.
-# https://en.wikipedia.org/wiki/Erdős–Rényi_model
 def gen_erdos_reyni_directed(num_vertices: int, p:float) -> StandardGraph:
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
@@ -117,6 +125,8 @@ def gen_planted_hamiltonian_undirected_fixed_degree(vertices: int, num_edges: in
 	
 	return StandardGraph(vertices, final_edges)
 
+
+
 def shuffle_vertex_names(graph: StandardGraph) -> StandardGraph:
 	'''
 	Some algorithms might be advantaged by the longest path being 0 -> 1 -> 2 etc,
@@ -128,6 +138,9 @@ def shuffle_vertex_names(graph: StandardGraph) -> StandardGraph:
 	random.shuffle(edges)
 
 	return StandardGraph(graph.vertices, edges)
+
+
+
 
 class ExpandableGraph:
 	"""
@@ -155,41 +168,25 @@ class ExpandableGraph:
 			self.backward_least_expansion_distance(v)
 		)
 
-	def expand(self, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
+	def expand(self, generator: Callable[[int], StandardGraph] = lambda n: n) -> StandardGraph:
 		"""
 		Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
 
 		Args:
-			p: The probability used in Erdos-Reyni to generate bubbles.
-			node_count: Should return the size of a bubble given the upper bound. This can be any non-order-increasing procedure.
+			generator: A graph generator for generating the bubbles.
+				`generator(n)` should return a `StandardGraph` with at most n nodes.
 		"""
 		result = self.graph.clone()
 
 		for v in range(self.graph.vertices):
 			max_bubble_path_edge_length = self.least_expansion_distance(v)
 			max_bubble_size = max_bubble_path_edge_length + 1
-			G = gen_erdos_reyni_directed(node_count(max_bubble_size), p = p)
+			G = generator(max_bubble_size)
 			result.wedge(G, v, 0)
 
 		return result
-	
-	def expand_with_average_degree(self, average_degree, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
-		"""
-		Returns a new graph G such that self.graph is a subgraph of G and such that there is a longest path of G that sits fully inside of self.graph.
 
-		Args:
-			p: The probability used in Erdos-Reyni to generate bubbles.
-			node_count: Should return the size of a bubble given the upper bound. This can be any non-order-increasing procedure.
-		"""
-		result = self.graph.clone()
 
-		for v in range(self.graph.vertices):
-			max_bubble_path_edge_length = self.least_expansion_distance(v)
-			max_bubble_size = max_bubble_path_edge_length + 1
-			G = gen_average_degree_directed(node_count(max_bubble_size), average_degree=average_degree)
-			result.wedge(G, v, 0)
-
-		return result
 
 @dataclass
 class LinearGraph(ExpandableGraph):
@@ -214,6 +211,8 @@ def compute_index_dict(set_list):
 			result[x] = i
 
 	return result
+
+
 
 @dataclass
 class DAG(ExpandableGraph):
@@ -274,6 +273,7 @@ class DAG(ExpandableGraph):
 		path.reverse()
 
 		return path
+
 
 def gen_DAG(vertices: int, p: float):
 	"""

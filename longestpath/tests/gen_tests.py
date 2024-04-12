@@ -1,6 +1,7 @@
 from ..gen import *
 import unittest
 import random
+from ..standard_graph import complete_graph, discrete_graph
 
 class TestGen(unittest.TestCase):
     def assertEqualGraphs(self, G1, G2):
@@ -32,13 +33,13 @@ class TestGen(unittest.TestCase):
         )
 
     def test_expand_prob0(self):
-        result = LinearGraph(5).expand(p = 0)
+        result = LinearGraph(5).expand(generator=discrete_graph)
         self.assertEqualGraphs(
             result, StandardGraph(9, linear_graph(5).edges)
         )
 
     def test_expand_prob1(self):
-        result = LinearGraph(5).expand(p = 1)
+        result = LinearGraph(5).expand(generator=complete_graph)
         self.assertEqualGraphs(
             StandardGraph.from_undirected(result.vertices, result.edges),
             StandardGraph.from_undirected(9, 
