@@ -112,8 +112,11 @@ def anneal(
         temp *= alpha
     return path
 
-def solve(graph: StandardGraph, until_length: int | None = None, num_reads=100, **anneal_kwargs):
-    until_length = until_length or graph.vertices-1
+def solve(graph: StandardGraph, use_known_length: bool = False, process_queue=None, num_reads=100, **anneal_kwargs):
+    if use_known_length:
+        until_length = graph.get_known_longest_path_length()
+    else:
+        until_length = graph.vertices-1
     inserts = compute_inserts(graph)
     edge_set = set(graph.edges)
 
@@ -143,7 +146,8 @@ def main():
     brute_result = brute.solve(graph, "BRANCH_N_BOUND")
     actual_length = len(brute_result['path'])-1
     print("brute", pretty_result(brute_result))
-    print("anneal", pretty_result(with_timed_result(solve)(graph, until_length=actual_length, num_reads=200, num_sweeps=32)))
+    graph.set_known_longest_path_length(actual_length)
+    print("anneal", pretty_result(with_timed_result(solve)(graph, use_known_length=True, num_reads=100, num_sweeps=32)))
 
 
 if __name__ == "__main__":

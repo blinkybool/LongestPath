@@ -188,7 +188,7 @@ class QUBOSolver:
 				result['sampler_calls'] = sampler_calls
 				return result
 
-def solve(graph: StandardGraph, max_length_path: int | None = None, use_known_length: bool = False, use_leap=False, sampler_kwargs={}, process_queue=None):
+def solve(graph: StandardGraph, max_length_path: int | None = None, use_known_length: bool = False, use_leap=False, process_queue=None, **sampler_kwargs):
 	solver = QUBOSolver(graph, max_length_path)
 	return solver.solve(use_leap=use_leap, use_known_length=use_known_length, **sampler_kwargs)
 

@@ -2,7 +2,7 @@ from visualise import serve_visualiser
 from benchmarking import Benchmark
 import pandas as pd
 
-benchmark = Benchmark.load("benchmarks/rob-top-2000")
+benchmark = Benchmark.load("benchmarks/qubo_known/2")
 
 vis_data = {
     "solvers": [f"{i}-{solver}" for i, solver in enumerate(benchmark.solvers)],
@@ -17,7 +17,7 @@ for graph_id, graph in benchmark.graphs:
         "data": {},
         "results": [result for result in results if result["graph_id"] == graph_id],
     }
-    vis_graph["data"]["nodes"] = [{"id": i, "path": False} for i in range(graph.vertices)]
+    vis_graph["data"]["nodes"] = [{"id": i} for i in range(graph.vertices)]
     vis_graph["data"]["links"] = [{"source": i, "target": j} for i, j in graph.edges]
     vis_data["graphs"].append(vis_graph)
 

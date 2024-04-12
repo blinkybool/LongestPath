@@ -22,20 +22,10 @@
 
 	const [blue3, blue2, blue1, grey, red1, red2, red3] = colors;
 
-	// // Function to check if a pair is in the list of edges
-	// function edgeInPath(src, tar, edges) {
-	// 	const value = edges.some(([i, j]) => src === i && tar === j)
-	// 	console.log(value, src, tar, edges)
-	// 	return value
-	// }
-
 	const Graph = ForceGraph()(document.getElementById('graph'))
 		.graphData({nodes:[], links: []})
 		.nodeLabel('id')
-		.nodeColor(node => node.in_path ? red3 : grey)
-		.linkWidth(link => link.in_path ? 2 : 1)
 		.linkLabel("label")
-		.linkColor(link => link.in_path ? red2 : grey)
 		.linkDirectionalArrowLength(10)
 		.linkDirectionalArrowRelPos(1)
 		.onNodeDragEnd(node => {
@@ -43,24 +33,20 @@
 			node.fy = node.y;
 		});
 
-	function updateGraph(graphData, result) {
-		const path = result.path ? result.path : [];
-		
-		const links = graphData.links.map((link) => {
-			for (var i = 0; i + 1 < path.length; i++) {
-				if (link.source == path[i] && link.target == path[i+1]) {
-					return {...link, ...{in_path: true}}
-				}
-			}
-			return {...link, ...{in_path: false}}
-		})
+	function updatePath(path) {
+		path = path ? path : [];
+		console.log(path)
+		function hasEdge(u, v) {
+			const i = path.indexOf(u)
+			const j = path.indexOf(v)
 
-		const nodes = graphData.nodes.map((node) => ({...node, ...{in_path: path.includes(node.id)}}))
-
-		Graph.graphData({
-			nodes: nodes,
-			links: links,
-		});
+			return i != -1 && j != -1 && j == i + 1
+		} 
+		Graph
+			// .nodeColor(node => true ? red3 : grey)
+			.nodeColor(node => path.includes(node.id) ? red3 : grey)
+			.linkWidth(link => hasEdge(link.source.id, link.target.id) ? 2 : 1)
+			.linkColor(link => hasEdge(link.source.id, link.target.id) ? red2 : grey)
 	}
 
 	fetch('/vis_data')
@@ -76,23 +62,23 @@
 				solution: solvers[0],
 			};
 
-			function update(graph_id, solution) {
-				const graphIndex = graphs.findIndex(graph => graph.graph_id === graph_id);
-				// Assumes unique solution labels
-				const solutionIndex = solvers.indexOf(solution);
-				const graph = graphs[graphIndex];
-				const result = graph.results[solutionIndex]
-				updateGraph(graph.data, result);
-			}
+			const getGraph = (graph_id) => graphs[graphs.findIndex(graph => graph.graph_id === graph_id)];
 
 			gui.add(config, 'graph_id', graphs.map(graph => graph.graph_id))
-				.onChange((graph_id) => update(graph_id, config.solution));
-
+				.onChange((graph_id) => { Graph.graphData(getGraph(graph_id).data) });
+				
 			gui.add(config, 'solution', solvers)
-				.onChange((solution) => update(config.graph_id, solution));
+				.onChange((solution) => {
+					const graph = getGraph(config.graph_id)
+					// Assumes unique solution labels
+					const solutionIndex = solvers.indexOf(solution);
+					const result = graph.results[solutionIndex]
+					updatePath(result.path)
+				});
 
 			// Load the default graph
-			update(config.graph_id, config.solution)
+			Graph.graphData(graphs[0].data)
+			updatePath(graphs[0].results[0].path)
 		});
   </script>
 </body>

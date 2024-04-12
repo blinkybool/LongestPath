@@ -23,4 +23,5 @@ def serve_visualiser(vis_data):
 
     with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
         print(f"Server active: http://localhost:{PORT}/")
+        httpd.allow_reuse_address = True
         httpd.serve_forever()
