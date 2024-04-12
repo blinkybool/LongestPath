@@ -23,25 +23,32 @@ def random_subset(set: list, p: float) -> list:
 	return [set[i] for i in choices]
 
 def gen_random_edges_directed(num_vertices: int, p:float) -> StandardGraph:
+	"""
+	Generate a directed Erdős–Rényi graph such that the probablity of an edge existing is `p`.
+	"""
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	
 	return StandardGraph(num_vertices, list(random_subset(all_edges, p)))
 
-def gen_random_edges_average_degree_directed(num_vertices: int, average_degree: float) -> StandardGraph:
-	p = min(1, average_degree / num_vertices)
+def gen_random_edges_average_degree_directed(num_vertices: int, expected_average_degree: float) -> StandardGraph:
+	"""
+	Generates a directed Erdős–Rényi graph with a random amount of edges such that the average degree has expected value `expected_average_degree`.
+	"""
+	p = min(1, expected_average_degree / num_vertices)
 	return gen_random_edges_directed(num_vertices, p)
 
 def gen_num_edges(num_vertices: int, num_edges: int) -> StandardGraph:
+	"""
+	Generates a directed Erdős–Rényi graph with exactly a specified number of edges.
+	"""
 	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices)]
 	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
 	return StandardGraph(num_vertices, random_edges)
 
-def gen_num_edges_no_loops(num_vertices: int, num_edges: int) -> StandardGraph:
-	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices) if s < t]
-	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), min(num_edges, len(all_edges)), replace = False)]
-	return StandardGraph(num_vertices, random_edges)
-
 def gen_num_edges_undirected(num_vertices: int, num_edges: int) -> StandardGraph:
+	"""
+	Generates an undirected Erdős–Rényi graph with exactly a specified number of edges.
+	"""
 	all_edges = [{s, t} for s in range(num_vertices) for t in range(num_vertices) if s != t]
 	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), num_edges, replace = False)]
 
@@ -49,6 +56,11 @@ def gen_num_edges_undirected(num_vertices: int, num_edges: int) -> StandardGraph
 	random_edges3 = random_edges2 + [(t, s) for s,t in random_edges2]
 
 	return StandardGraph(num_vertices, random_edges3)
+
+def gen_num_edges_no_loops(num_vertices: int, num_edges: int) -> StandardGraph:
+	all_edges = [(s, t) for s in range(num_vertices) for t in range(num_vertices) if s < t]
+	random_edges = [all_edges[i] for i in np.random.choice(len(all_edges), min(num_edges, len(all_edges)), replace = False)]
+	return StandardGraph(num_vertices, random_edges)
 
 def gen_density(num_vertices: int, density: float, directed: bool = True) -> StandardGraph:
 	if not directed:
@@ -62,6 +74,7 @@ def gen_density(num_vertices: int, density: float, directed: bool = True) -> Sta
 def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
 	"""
 	Generates a random graph such that its longest path consits of exactly `path_length` many nodes.
+	Internally this uses `ExpandableGraph` with a linear graph as a base.
 
 	Args:
 		p: The probability used in Erdos-Reyni to generate bubbles.
@@ -76,18 +89,12 @@ def gen_planted_path(path_length: int, p: float, node_count: Callable[[int], int
 	
 	return result
 
-def gen_planted_path_with_average_degree(path_length: int, average_degree, node_count: Callable[[int], int] = lambda n: n) -> StandardGraph:
-	result = linear_graph(path_length)
-
-	for v in range(path_length):
-		max_nodes = min(v + 1, path_length - v)
-		G = gen_random_edges_average_degree_directed(node_count(max_nodes), average_degree=average_degree)
-		result.wedge(G, v, 0)
-	
-	return result
-
-
 def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
+	"""
+	Generates a random graph with a planted Hamiltonian.
+	Args:
+		p: The probablity that an edge is added to the underlying linear graph. 
+	"""
 	line = linear_graph(vertices).edges
 	line_set = set(line)
 	all_edges = [
@@ -100,6 +107,9 @@ def gen_planted_hamiltonian(vertices: int, p: float) -> StandardGraph:
 	return StandardGraph(vertices, list(random_subset(all_edges, p)) + line)
 
 def gen_planted_hamiltonian_undirected_fixed_degree(vertices: int, num_edges: int) -> StandardGraph:
+	"""
+	Generates an undericted graph with an exact specified number of edges and a planted Hamiltonian path.
+	"""
 	line = linear_graph(vertices).edges
 	line_set = set(line)
 	all_edges = [
@@ -190,6 +200,9 @@ class ExpandableGraph:
 
 @dataclass
 class LinearGraph(ExpandableGraph):
+	"""
+	An `ExpandableGraph` implementation for linear graphs.
+	"""
 	graph: StandardGraph
 	def __init__(self, vertices: int):
 		self.graph = linear_graph(vertices)
@@ -216,14 +229,16 @@ def compute_index_dict(set_list):
 
 @dataclass
 class DAG(ExpandableGraph):
-	graph: StandardGraph
 	"""
 	NOTE: The graph should not be mutated!
-	These are directed acyclic graphs.
+	An `ExpandableGraph` implementation for directed acyclic graphs.
 	
 	For any paths p and q such that end(p) = start(q) we know that pq is a path.
 	Therefore computing the least expansion distances is easy in these cases.
 	"""
+
+	graph: StandardGraph
+
 	def __init__(self, graph: StandardGraph):
 		self.graph = graph
 		self.lower_topo_sorting = self.graph.topological_sort()
