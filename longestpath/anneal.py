@@ -24,7 +24,7 @@ def compute_inserts(graph: StandardGraph) -> Dict[Tuple[int, int], List[int]]:
         # Inserting into the empty path []
         inserts[(-1,-1)].append(a)
         inserts[(-1,-1)].append(b)
-        
+
         for (b2,c) in graph.edges:
             if b == b2 and c != b and c != a:
                 inserts[(a,c)].append(b)
@@ -59,16 +59,16 @@ def nudge_path(path: List[int],
         moves.extend((INSERT, (n, v)) for v in inserts[(path[-1], -1)] if v not in path)
 
     local_max = len(moves) == 0
-    
+
     # Compute deletes
     if temp is not None:
         for i in range(n):
             if i == 0 or i == n-1 or (path[i-1], path[i+1]) in edge_set:
                 moves.append((DELETE, i))
-    
+
     if len(moves) == 0:
         return local_max
-    
+
     # Choose random move
     kind, data = moves[np.random.randint(0, len(moves))]
 
@@ -86,7 +86,7 @@ def nudge_path(path: List[int],
             path.pop(i)
     else:
         raise ValueError("Invalid move kind")
-    
+
     # Uncomment this to validate the path
     for (u,v) in zip(path[:-1], path[1:]):
         if (u,v) not in edge_set:
@@ -111,6 +111,24 @@ def anneal(
 
         temp *= alpha
     return path
+
+def recorded_anneal(
+        edge_set: Set[Tuple[int,int]],
+        inserts: Dict[Tuple[int,int],List[int]],
+        num_sweeps: int = 64,
+        alpha: float = 0.9,
+        initial_temp: float = 1.0,
+        final_temp: float = 0.00122) -> Tuple[List[int], List[List[int]]]:
+    events = []
+    path = []
+    temp = initial_temp
+    while temp > final_temp:
+        for _ in range(num_sweeps):
+            nudge_path(path, edge_set, inserts, temp)
+            events.append({ 'path': path.copy(), 'temp': temp})
+
+        temp *= alpha
+    return events
 
 def solve(graph: StandardGraph, use_known_length: bool = False, process_queue=None, num_reads=100, **anneal_kwargs):
     if use_known_length:

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://unpkg.com/force-graph"></script>
+	<script src="https://unpkg.com/dat.gui"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<style>
+		/* Style for the container */
+		.container {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			height: 55vh;
+		}
+	
+		/* Style for each window */
+		.window {
+			/* border: 2px solid #000; */
+			width: 50%;
+			height: 100%;
+			overflow: hidden;
+			margin: 5px;
+			position: relative;
+		}
+
+		#info {
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 0;
+			padding: 10px; /* Adjust as needed */
+			z-index: 2; /* Ensure the title stays on top */
+			font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		}
+
+		#info-lower {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			margin: 0;
+			padding: 10px; /* Adjust as needed */
+			z-index: 2; /* Ensure the title stays on top */
+			font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		}
+	
+		/* Adjust size of Chart.js canvas */
+		canvas.chartjs-render-monitor {
+			width: 100% !important;
+			height: 100% !important;
+			/* margin: 5px; */
+		}
+	
+		/* Adjust size of ForceGraph container */
+		#force-graph-container {
+			width: 100%;
+			height: 100%;
+		}
+
+		#gui { position: relative; top: 10px; left: 2px }
+	</style>
+</head>
+<body>
+
+<div class="container">
+	<!-- Window for Chart.js chart -->
+	<div class="window" style="width: 60%">
+		<canvas id="chart-canvas"></canvas>
+	</div>
+	<!-- Window for ForceGraph -->
+	<!-- Make this window wider -->
+	<!-- <div class="window" > -->
+	<div class="window" style="width: 40%">
+		<h2 id="info"></h2>
+		<div id="force-graph-container"></div>
+		<h2 id="info-lower"></h2>
+	</div>
+</div>
+<div id="gui-container"></div>
+
+<script>
+
+	const colors = [
+		"#1984c5",
+		"#22a7f0",
+		"#63bff0",
+		"#a7d5ed",
+		"#e2e2e2",
+		"#e1a692",
+		"#de6e56",
+		"#e14b31",
+		"#c23728",
+	]
+
+	const [blue3, blue2, blue1, grey, red1, red2, red3] = colors;
+
+	const graphContainer = document.getElementById('force-graph-container');
+	const Graph = ForceGraph()(graphContainer)
+		.cooldownTicks(100)
+		.width(graphContainer.offsetWidth)
+		.height(graphContainer.offsetHeight)
+		.graphData({nodes:[], links: []})
+		.nodeLabel('id')
+		.nodeRelSize(4)
+		.linkLabel("label")
+		.onNodeDragEnd(node => {
+			node.fx = node.x;
+			node.fy = node.y;
+		});
+
+	var latestNewVertex = undefined;
+
+	function updatePath(path, prevPath) {
+		prevPath = prevPath || []
+		// Check for new vertex
+		for (let i = 0; i < path.length; i++) {
+			if (!prevPath.includes(path[i])) {
+				latestNewVertex = path[i];
+				break;
+			}
+		}
+
+		function hasEdge(u, v) {
+			const i = path.indexOf(u)
+			const j = path.indexOf(v)
+
+			return i != -1 && j != -1 && (j == i + 1 || i == j + 1)
+		} 
+		Graph
+			.nodeColor(node => path.includes(node.id) ? (node.id == latestNewVertex ? "#000000" : red3) : blue1)
+			.linkWidth(link => hasEdge(link.source.id, link.target.id) ? 3 : 2)
+			.linkColor(link => hasEdge(link.source.id, link.target.id) ? red3 : blue1)
+	}
+
+	const CHART_COLORS = {
+		red: 'rgb(255, 99, 132)',
+		orange: 'rgb(255, 159, 64)',
+		yellow: 'rgb(255, 205, 86)',
+		green: 'rgb(75, 192, 192)',
+		blue: 'rgb(54, 162, 235)',
+		purple: 'rgb(153, 102, 255)',
+		grey: 'rgb(201, 203, 207)'
+	};
+	
+	function use_data( data ) {
+
+		data.runs = data.runs.slice(data.runs.length-21, data.runs.length)
+
+		const bestRunSoFar = [0]
+		var bestPathLength = data.runs[0][data.runs[0].length-1].path.length-1
+		for (let i = 1; i < data.runs.length; i++) {
+			run = data.runs[i]
+			const endPathLength = run[run.length-1].path.length-1
+			if (bestPathLength == undefined || endPathLength > bestPathLength) {
+				bestPathLength = endPathLength
+				bestRunSoFar.push(i)
+			} else {
+				bestRunSoFar.push(bestRunSoFar[bestRunSoFar.length-1])
+			}
+		}
+
+		Graph.graphData(data.graph.data)
+
+		Graph.d3Force('center', null);
+
+		// fit to canvas when engine stops
+		Graph.onEngineStop(() => {
+			Graph.zoomToFit(50)
+		});
+
+		const events_per_run = Math.max(...data.runs.map( run => run.length ));
+		
+		var ctx = document.getElementById('chart-canvas').getContext('2d');
+		var chart = new Chart(ctx, {
+			type: 'line',
+			responsive: true,
+			data: {
+				labels: Array.from(Array(events_per_run+1).keys()),
+				datasets: [{
+					order: 0,
+					label: 'Path Length',
+					data: data.runs[0].map(event => event.path.length-1),
+					backgroundColor: 'rgba(255, 99, 132, 1)',
+					borderColor: 'rgba(255, 99, 132, 1)',
+					borderWidth: 2,
+					stepped: true,
+					pointStyle: false,
+				}]
+			},
+			options: {
+				aspectRatio: 1.5,
+				plugins: {
+					legend: {
+						display: false,
+					}
+				},
+				scales: {
+					x: {
+						grid: {
+							display: false,
+						},
+						ticks: {
+							display: false,
+						},
+						min: 0,
+						max: 1,
+					},
+					y: {
+						title: {
+							display: true,
+							text: 'Path Length',
+							font: {
+								size: 20,
+							}
+						},
+						min: 0,
+						max: data.longest_path.length,
+						ticks: {
+							stepSize: 1,
+						}
+					},
+				}
+			}
+		});
+
+		var gui = new dat.GUI( { autoPlace: false } );
+		gui.domElement.id = 'gui';
+		document.getElementById('gui-container').appendChild(gui.domElement);
+
+		const state = {
+			eventIndex: 0,
+			playing: false,
+			run_index: 0,
+		};
+
+		const infoElement = document.getElementById('info');
+		const infoLowerElement = document.getElementById('info-lower');
+		infoLowerElement.innerHTML = `Vertices = ${data.graph.data.nodes.length}<br/>Edges = ${data.graph.data.links.length}`;
+
+		function update(noAnimate = false) {
+			const events = data.runs[state.run_index];
+			const prevPath = state.eventIndex == 0 ? [] : events[state.eventIndex-1].path;
+			updatePath(events[state.eventIndex].path, prevPath)
+			infoElement.innerHTML = `Longest Path:  ${data.longest_path.length-1}<br/>Current Path: ${events[state.eventIndex].path.length-1}<br/>Temp: ${events[state.eventIndex].temp.toFixed(4)}`;
+
+			chart.data.datasets = chart.data.datasets.slice(0, state.run_index+1);
+			if (state.run_index == 0) {
+				chart.options.scales.x.max = state.eventIndex+1;
+			} else {
+				chart.options.scales.x.max = events_per_run+1;
+				for (i=0; i<=state.run_index; i++) {
+					if (i >= chart.data.datasets.length || chart.data.datasets[i].data.length != data.runs[i].length) {
+						chart.data.datasets[state.run_index] = {
+							label: 'Path Length',
+							data: Array.from(data.runs[state.run_index].map(event => event.path.length-1).slice(0, state.eventIndex+1)),
+							borderWidth: 2,
+							stepped: true,
+							pointStyle: false,
+						}
+					}
+				}
+				noAnimate = true;
+			}
+
+			for (i=0; i<chart.data.datasets.length; i++) {
+				const alpha = Math.sqrt(1/(state.run_index - i))
+				var color = `rgba(201, 203, 207, ${alpha})`
+				var order = 2;
+				if (i == bestRunSoFar[state.run_index-1]) { color = CHART_COLORS.purple; order = 1 }
+				if (i == state.run_index) { color = red3; order = 0 }
+				chart.data.datasets[i].borderColor = color
+				chart.data.datasets[i].backgroundColor = color
+				chart.data.datasets[i].order = order
+			}
+
+			chart.update(noAnimate ? "none" : undefined);
+		}
+		update(true)
+		
+		var intervalId = undefined
+		function setSpeed(speed) {
+			if (intervalId != undefined) { clearInterval(intervalId) }
+			intervalId = setInterval(loop, 500/speed)
+		}
+		state.speed = 1;
+		gui.add(state, 'speed', 0.5, 50, 0.1).listen().onFinishChange( (value) => { setSpeed(state.speed) } );
+		
+		function loop() {
+			if (!state.playing) {
+				return
+			}
+			if (state.eventIndex + 1 < data.runs[state.run_index].length) {
+				state.eventIndex++;
+				update()
+			} else if (state.run_index == 0) {
+				state.all_runs()
+			} else if (state.run_index + 1 < data.runs.length) {
+				state.run_index++;
+				state.speed = Math.min(state.speed*1.1, 50);
+				setSpeed(state.speed)
+				state.eventIndex = 0
+				update()
+			}
+		}
+
+		
+		gui.add(state, 'eventIndex', 0, data.runs[0].length - 1, 1)
+		.listen()
+		.onChange(() => {
+			state.playing = false;
+			update(true)
+		});
+		gui.add(state, 'run_index', 0, data.runs.length - 1, 1)
+		.listen()
+		.onChange(() => {
+			state.playing = false;
+			update(noAnimate = true)
+		});
+		
+		gui.add(state, 'playing')
+		.listen()
+		.onChange(() => {
+			setSpeed(state.speed);
+		})
+		
+		state.first_run = () => {
+			state.run_index = 0;
+			state.eventIndex = 0;
+			state.playing = true;
+			state.speed = 2;
+			update(true)
+			setSpeed(state.speed)
+		},
+		gui.add(state, 'first_run').name("First run");
+		
+		state.all_runs = () => {
+			state.run_index = 1;
+			state.eventIndex = 0;
+			state.playing = true;
+			state.speed = 20;
+			update(true)
+			setSpeed(state.speed)
+		},
+		gui.add(state, 'all_runs').name("Full Sim");
+		
+	};
+
+
+	const get_data = async () => {
+		const response = await fetch('/data');
+		return response.json();
+	}
+	
+	get_data().then(use_data);
+</script>
+</body>
+</html>

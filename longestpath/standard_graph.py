@@ -143,6 +143,23 @@ class StandardGraph:
 
 	def average_out_degree(self):
 		return len(self.edges) / self.vertices
+	
+	def is_connected(self):
+		adj = [[] for _ in range(self.vertices)]
+		for (s, t) in self.edges:
+			adj[s].append(t)
+			adj[t].append(s)
+		for v, neighbours in enumerate(adj):
+			adj[v] = list(set(neighbours))
+		visited = set()
+		stack = [0]
+		while len(stack) > 0:
+			v = stack.pop()
+			if v in visited: continue
+			stack += adj[v]
+			visited.add(v)
+		return len(visited) == self.vertices
+
 
 
 def discrete_graph(vertices: int) -> StandardGraph:
