@@ -85,9 +85,9 @@ bool verify_path(VertArray *path, NeighboursGraph *graph) {
 	return true;
 }
 
-NeighboursGraph *read_graph(bool undirected) {
+NeighboursGraph *read_graph(bool undirected, FILE *file) {
 	int vertices;
-	if (scanf("%d\n", &vertices) != 1){
+	if (fscanf(file, "%d\n", &vertices) != 1){
 		fprintf(stderr, "No graph provided.\n");
 		exit(1);
 	}
@@ -96,7 +96,7 @@ NeighboursGraph *read_graph(bool undirected) {
 	
 	int source, target;
 	int edges = 0;
-	while (scanf("%d %d\n", &source, &target) == 2) {
+	while (fscanf(file, "%d %d\n", &source, &target) == 2) {
 		edges++;
 		add_edge(graph, source, target);
 		if (undirected) {

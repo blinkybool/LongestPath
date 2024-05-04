@@ -30,6 +30,11 @@ class StandardGraph:
 			edges.append((u,v))
 		return cls(vertices=vertices, edges=edges)
 	
+	@classmethod
+	def from_file(cls, graph_file: str):
+		with open(graph_file, 'r') as f:
+			return cls.from_string(f.read())
+	
 	def to_matrix(self) -> List[List[bool]]:
 		matrix = [[False for _ in range(self.vertices)] for _ in range(self.vertices)]
 		for (i,j) in self.edges:

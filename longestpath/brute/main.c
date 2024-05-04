@@ -14,10 +14,10 @@ int main(int argc, char **argv) {
 	bool directed = true;
 	FILE *prog = NULL;
 	bool close_prog = false;
-	enum { UNSET, BRUTE_FORCE, BRANCH_N_BOUND, FAST_BOUND, BRUTE_FORCE_COMPLETE } method = UNSET;
+	enum { BRUTE_FORCE, BRANCH_N_BOUND, FAST_BOUND, BRUTE_FORCE_COMPLETE } method = BRUTE_FORCE;
 
 	opterr = 0; //if (opterr != 0) (which it is by default), getopt() prints its own error messages for invalid options and for missing option arguments.
-	while ((c = getopt (argc, argv, "m:up:")) != -1)
+	while ((c = getopt (argc, argv, "m:up:f")) != -1)
 		switch (c) {
 			case 'm':
 				if (strcmp(optarg, "BRUTE_FORCE") == 0) {
@@ -58,12 +58,10 @@ int main(int argc, char **argv) {
 				abort ();
 		}
 
-	if (method == UNSET) {
-		fprintf (stderr, "No method provided.\n%s", USAGE);
-		exit(EXIT_FAILURE);
-	}
-
-	NeighboursGraph *graph = read_graph(!directed);
+	FILE *graph_input_file = stdin;
+	if (optind < argc) graph_input_file = fopen(argv[optind], "r");
+	NeighboursGraph *graph = read_graph(!directed, graph_input_file);
+	if (graph_input_file != stdin) fclose(graph_input_file);
 
 	VertArray *best_path = malloc(sizeof(VertArray));
 	best_path->count = 0;

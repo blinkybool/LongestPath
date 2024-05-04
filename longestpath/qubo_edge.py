@@ -17,27 +17,25 @@ class QUBO_Edge_Solver:
     # This function turns a graph into new graph with a tail of specified length.
     # All vertices in the original graph are connected to the beginning of the tail.
     def make_tail_graph(self, tail_length : int) -> StandardGraph:
-        graph = self.graph
-
         if tail_length == 0:
             tail_graph = StandardGraph(0, [])
-            tail_graph.vertices += graph.vertices
-            tail_graph.edges = graph.edges.copy()
+            tail_graph.vertices += self.graph.vertices
+            tail_graph.edges = self.graph.edges.copy()
             return tail_graph
 
         # We set the vertex amount of tail_graph and copy the edges of the original graph into tail_graph.edges.
         tail_graph = StandardGraph(0, [])
-        tail_graph.vertices += graph.vertices + tail_length
-        tail_graph.edges = graph.edges.copy()
+        tail_graph.vertices += self.graph.vertices + tail_length
+        tail_graph.edges = self.graph.edges.copy()
         
         
-        # The tail part starts at index graph.vertices.
+        # The tail part starts at index self.graph.vertices.
         # We connect all the original vertices to the beginning of the tail.
-        for i in range(0,graph.vertices):
-            tail_graph.edges.append((i,graph.vertices))
+        for i in range(0,self.graph.vertices):
+            tail_graph.edges.append((i,self.graph.vertices))
         
         #We add the connections within the tail.
-        for i in range(graph.vertices , graph.vertices + tail_length - 1):
+        for i in range(self.graph.vertices , self.graph.vertices + tail_length - 1):
             tail_graph.edges.append((i, i+1))
 
         return tail_graph
@@ -46,11 +44,10 @@ class QUBO_Edge_Solver:
     # These collections of indices are stored in lists of integers.
     # The lists are then stored in an outer list of which the indices correspond to the vertices of the graph.
     def make_vertex_edges(self) -> List[List[int]] :
-        graph = self.tail_graph
-        out = [[] for i in range(graph.vertices)]
+        out = [[] for i in range(self.tail_graph.vertices)]
 
-        for i in range(len(graph.edges)):
-            (v_1, v_2) = graph.edges[i]
+        for i in range(len(self.tail_graph.edges)):
+            (v_1, v_2) = self.tail_graph.edges[i]
             
             out[v_1].append(i)
             out[v_2].append(i)
@@ -61,11 +58,10 @@ class QUBO_Edge_Solver:
     # Edge (i,j) goes from i to j.
     # With respect to this orientation, we compute for each vertex in a graph which edges point towards that vertex
     def make_in_flow_edges(self) -> List[List[int]] :
-        graph = self.tail_graph
-        out = [[] for i in range(graph.vertices)]
+        out = [[] for i in range(self.tail_graph.vertices)]
 
-        for i in range(len(graph.edges)):
-            (_, v_2) = graph.edges[i]
+        for i in range(len(self.tail_graph.edges)):
+            (_, v_2) = self.tail_graph.edges[i]
 
             out[v_2].append(i)
         
@@ -73,11 +69,10 @@ class QUBO_Edge_Solver:
 
     #We also compute, for each vertex, which edges point away from that vertex
     def make_out_flow_edges(self) -> List[List[int]] :
-        graph = self.tail_graph
-        out = [[] for i in range(graph.vertices)]
+        out = [[] for i in range(self.tail_graph.vertices)]
 
-        for i in range(len(graph.edges)):
-            (v_1, _) = graph.edges[i]
+        for i in range(len(self.tail_graph.edges)):
+            (v_1, _) = self.tail_graph.edges[i]
 
             out[v_1].append(i)
         
@@ -115,30 +110,30 @@ class QUBO_Edge_Solver:
         # We also consider edges from an initial and terminal "vertex". The values of these variables indicate where a path begins and ends.
 
         edge_vars = Array.create('edge', len(tail_graph.edges), vartype='BINARY')
-        initial_edge_vars = Array.create('init_edge', graph.vertices, vartype='BINARY')
+        initial_edge_vars = Array.create('init_edge', self.graph.vertices, vartype='BINARY')
         terminal_edge_vars = Array.create('term_edge', tail_graph.vertices, vartype='BINARY')
 
         # For each edge (with initial and terminal edges included) we store a inetger flow value in the possitive dirrection of the edges.
         # A flow value can be at most K + 2 and must be at least 0.
 
         flow_vars = [LogEncInteger(f"flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))]
-        initial_flow_vars = [LogEncInteger(f"initial_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be ingoing
+        initial_flow_vars = [LogEncInteger(f"initial_flow_vars[{i}]", (0,K + 2)) for i in range(self.graph.vertices)] #assumed to be ingoing
         terminal_flow_vars = [LogEncInteger(f"terminal_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be outgoing
         # We also store flow values for the negative directions of edges.
 
         contra_flow_vars = [LogEncInteger(f"contra_flow_vars[{i}]", (0,K + 2)) for i in range(len(tail_graph.edges))]
-        initial_contra_flow_vars = [LogEncInteger(f"initial_contra_flow_vars[{i}]", (0,K + 2)) for i in range(graph.vertices)] #assumed to be outgoing
+        initial_contra_flow_vars = [LogEncInteger(f"initial_contra_flow_vars[{i}]", (0,K + 2)) for i in range(self.graph.vertices)] #assumed to be outgoing
         terminal_contra_flow_vars = [LogEncInteger(f"terminal_contra_flow_vars[{i}]", (0,K + 2)) for i in range(tail_graph.vertices)] #assumed to be ingoing
 
         # This variable will store the matrix for the qubo formulation in the form of a quadratic expression.
         qubo_matrix_expression = 0
 
         #This part of the expression rewards longer paths which 1 point per used edge.
-        candy_exp = sum(edge_vars[i] for i in range(len(graph.edges)))
+        candy_exp = sum(edge_vars[i] for i in range(len(self.graph.edges)))
         qubo_matrix_expression += candy_exp
 
         # This part of the expression results in a penalty if multiple initial edges are used.
-        initial_node_exp = P * (1 - sum(initial_edge_vars[i] for i in range(graph.vertices)))**2
+        initial_node_exp = P * (1 - sum(initial_edge_vars[i] for i in range(self.graph.vertices)))**2
         qubo_matrix_expression += initial_node_exp
 
         # This part of the expression results in a penalty if multiple terminal edges are used.
@@ -146,11 +141,11 @@ class QUBO_Edge_Solver:
         qubo_matrix_expression += terminal_node_exp
 
         # This part of the expression results in a penalty if multiple vertices are connected to the beginning of the tail.
-        fake_terminal_node_exp_1 = P * (vertex_vars[graph.vertices] - sum(edge_vars[i] for i in range( len(graph.edges), len(graph.edges) + graph.vertices)))**2
+        fake_terminal_node_exp_1 = P * (vertex_vars[self.graph.vertices] - sum(edge_vars[i] for i in range( len(self.graph.edges), len(self.graph.edges) + self.graph.vertices)))**2
         qubo_matrix_expression += fake_terminal_node_exp_1
 
         # This part of the expression results in a penalty if second vertex in the tail is used without using the beginning of the tail.
-        fake_terminal_node_exp_2 = P * (1 - vertex_vars[graph.vertices]) * vertex_vars[graph.vertices + 1]
+        fake_terminal_node_exp_2 = P * (1 - vertex_vars[self.graph.vertices]) * vertex_vars[self.graph.vertices + 1]
         qubo_matrix_expression += fake_terminal_node_exp_2
 
         # This part of the expression results in a penalty if there are not exactly 2 edges used that are connected to the same vertex while that vertex lies on the path.
@@ -163,7 +158,7 @@ class QUBO_Edge_Solver:
             temp1 += terminal_edge_vars[i]
 
             # Only vertices from the input graph are connected to initial edges
-            if i < graph.vertices:
+            if i < self.graph.vertices:
                 temp1 += initial_edge_vars[i]
 
             # For vertex i we make sure that exactly 0 or 2 connected edges are used (depending on if the vertex lies on the path)
@@ -194,7 +189,7 @@ class QUBO_Edge_Solver:
             temp_exp = (K+2) * vertex_vars[i]
 
             # For each connected vertex we subtract the corresponging ingoing flow value
-            if i < graph.vertices:
+            if i < self.graph.vertices:
                 temp_exp += -initial_flow_vars[i]
             temp_exp += -terminal_contra_flow_vars[i]
             temp_exp += -sum([contra_flow_vars[j] for j in out_flow_edges[i]])
@@ -228,7 +223,6 @@ class QUBO_Edge_Solver:
         sampleset = sa.sample(bqm, **kwargs)
         return sampleset
 
-    @with_timed_result
     def solve(self, **sampler_kwargs):
         sampleset = self.sample(**sampler_kwargs)
         best_sample = sampleset.first
