@@ -88,7 +88,7 @@ bool verify_path(VertArray *path, NeighboursGraph *graph) {
 NeighboursGraph *read_graph(bool undirected, FILE *file) {
 	int vertices;
 	if (fscanf(file, "%d\n", &vertices) != 1){
-		fprintf(stderr, "No graph provided.\n");
+		fprintf(stderr, "Graph read failed. (Bad formatting?)\n");
 		exit(1);
 	}
 
