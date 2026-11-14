@@ -2,7 +2,7 @@
 Implementations of various longest path algorithms, including brute force (with various branch and bound strategies) and QUBO formulations.
 
 ## Setup
-You need `make` and `gcc` to compile the C code, and python3.10 for the python code.
+You need `make` and `gcc` to compile the C code, and python3.11 for the python code.
 WSL is recommended for running on Windows.
 
 ### Compile brute
@@ -17,12 +17,12 @@ You can skip the python setup if you just want to run brute.
 ### Python setup
 Option 1: Manage python version and dependencies with conda.
 ```bash
-conda create --name longest-path-env python=3.10
+conda create --name longest-path-env python=3.11
 conda activate longest-path-env
 # Uses pip from conda env
 pip install -r requirements.txt
 ```
-Option 2: Install python3.10 your own way and use virtualenv.
+Option 2: Install python3.11 your own way and use virtualenv.
 ```bash
 # Create virtualenv
 python3 -m venv venv
